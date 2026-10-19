@@ -19,10 +19,8 @@ jobs:
         with:
           node-version: '20'
 
-      - name: Run Terminal Audit Script
-        env:
-          AVIATIONSTACK_KEY: ${{ secrets.AVIATIONSTACK_KEY }}
-        run: node scripts/audit-db.js
+      - - name: Run Terminal Audit Script
+          run: node scripts/audit-db.js
 
       - name: Create Issue on Discrepancy
         if: failure()

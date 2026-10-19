@@ -2,13 +2,12 @@
 const fs = require('fs');
 const path = require('path');
 
-// 1. Helper to extract array data from local database files
+// 1. Helper to extract database array from local file
 function loadLocalDatabase(filename) {
   const filePath = path.join(__dirname, '..', filename);
   if (!fs.existsSync(filePath)) return [];
   
   const content = fs.readFileSync(filePath, 'utf8');
-  // Extract array assignment using regex
   const jsonMatch = content.match(/const\s+\w+\s*=\s*(\[\s*\{[\s\S]*?\}\s*\]);/);
   if (!jsonMatch) return [];
 
@@ -20,14 +19,14 @@ function loadLocalDatabase(filename) {
   }
 }
 
-// 2. Fetch Manila (NAIA) Directory directly from public portal
+// 2. Fetch Manila (NAIA) Directory directly from newnaia.com.ph
 async function fetchOfficialManilaTerminals() {
   const terminalMap = {};
   try {
     const response = await fetch('https://newnaia.com.ph/flights/airline-information');
     const html = await response.text();
 
-    // Regex match airline name and terminal number from page structure
+    // Regex match airline names and terminal assignments in page markup
     const matches = html.matchAll(/class="airline-name">([^<]+)<\/div>[\s\S]*?Terminal\s*(\d)/gi);
     for (const match of matches) {
       const airlineName = match[1].trim().toLowerCase();
@@ -40,18 +39,16 @@ async function fetchOfficialManilaTerminals() {
   return terminalMap;
 }
 
-// 3. Fetch Don Mueang (DMK) Terminal structure directly
+// 3. Check Don Mueang (DMK) Terminal structure
 async function fetchOfficialDMKTerminals() {
   const terminalMap = {};
   try {
     const response = await fetch('https://www.donmueangairport.com/');
     const html = await response.text();
 
-    // DMK follows a strict dual layout: Terminal 1 = International, Terminal 2 = Domestic
-    // Extract listed carriers for domestic/international check-ins
     const t2Matches = html.matchAll(/(AirAsia|Thai Lion|Nok Air|Bangkok Airways|THAI Smile)/gi);
     for (const match of t2Matches) {
-      terminalMap[match[1].toLowerCase()] = 'T2'; // Domestic hub
+      terminalMap[match[1].toLowerCase()] = 'T2';
     }
   } catch (error) {
     console.warn('Could not fetch DMK directory:', error.message);
@@ -59,14 +56,13 @@ async function fetchOfficialDMKTerminals() {
   return terminalMap;
 }
 
-// 4. Fetch Suvarnabhumi (BKK) Satellite & Main Terminal mappings
+// 4. Check Suvarnabhumi (BKK) Satellite & Main Terminal mappings
 async function fetchOfficialBKKTerminals() {
   const terminalMap = {};
   try {
     const response = await fetch('https://www.bangkokairportonline.com/suvarnabhumi-airport-terminal-map/');
     const html = await response.text();
 
-    // Catch SAT-1 expanded concourse assignments
     if (html.includes('SAT-1')) {
       terminalMap['sat1_active'] = true;
     }
@@ -99,7 +95,6 @@ async function runAudit() {
     const records = loadLocalDatabase(dbInfo.file);
 
     for (const record of records) {
-      // Skip multi-terminal/complex codes
       if (record.terminal.includes('/') || record.terminal.includes('Main Terminal / SAT-1')) {
         continue;
       }
@@ -122,12 +117,11 @@ async function runAudit() {
     }
   }
 
-  // 6. Output Audit Results
   if (report.length > 0) {
     console.warn("\n⚠️ TERMINAL DISCREPANCIES DETECTED:");
     console.table(report);
     fs.writeFileSync(path.join(__dirname, 'drift-report.json'), JSON.stringify(report, null, 2));
-    process.exit(1); // Fails GitHub Action workflow step to alert via Issue
+    process.exit(1);
   } else {
     console.log("\n✅ All local terminal databases match official airport web directories!");
   }
