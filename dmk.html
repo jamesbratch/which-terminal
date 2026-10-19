@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WhichTerminal.com — Don Mueang Airport (DMK) Terminal Finder</title>
+  
+  <!-- SEO & Canonical -->
+  <meta name="description" content="Verified terminal directory for Bangkok Don Mueang Airport (DMK). Find AirAsia, Nok Air, Thai Lion Air, and regional budget carrier terminals instantly.">
+  <link rel="canonical" href="https://whichterminal.com/dmk.html">
+
+  <!-- OpenGraph Meta Tags -->
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://whichterminal.com/dmk.html">
+  <meta property="og:title" content="Don Mueang Airport (DMK) Terminal Directory — WhichTerminal.com">
+  <meta property="og:description" content="Instant, offline-capable terminal finder for Don Mueang Airport (DMK). Domestic T2 vs International T1 mappings.">
+  <meta property="og:image" content="https://whichterminal.com/assets/og-preview.png">
+
+  <!-- PWA & Favicon Icons -->
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+  <link rel="manifest" href="/site.webmanifest">
+  <meta name="theme-color" content="#0f172a">
+
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- Sticky Mobile Nav Header -->
+  <nav class="top-nav">
+    <a href="/" class="brand">WhichTerminal<span class="tld">.com</span></a>
+    <span class="nav-badge">DMK Directory</span>
+  </nav>
+
+  <div class="page-wrapper">
+    <!-- Header -->
+    <header class="hero-header">
+      <h1>Don Mueang Airport (DMK)</h1>
+      <p class="hero-subtext">Verified airline terminal mappings for Bangkok Don Mueang International Airport.</p>
+      
+      <div class="verified-meta">
+        <span>✓</span> Data Verified: October 2026 Schedule
+      </div>
+    </header>
+
+    <!-- Toolbar: Search + Touch Filter Pills -->
+    <section class="toolbar">
+      <div class="search-field">
+        <span class="search-icon">🔍</span>
+        <input type="text" id="airlineSearch" placeholder="Search airline or flight code (e.g. AirAsia, FD, Nok Air)..." autocomplete="off">
+      </div>
+
+      <div class="filter-scroll">
+        <button class="filter-pill active" data-filter="all">All Terminals</button>
+        <button class="filter-pill" data-filter="Terminal 1">Terminal 1 (Intl)</button>
+        <button class="filter-pill" data-filter="Terminal 2">Terminal 2 (Dom)</button>
+      </div>
+    </section>
+
+    <!-- Instant Search Highlighting Result -->
+    <div id="instantCard" class="instant-result-card">
+      <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+        <div>
+          <div id="instantAirline" class="instant-title">Thai AirAsia</div>
+          <div id="instantTerminal" class="instant-terminal">Terminal 2</div>
+        </div>
+        <span id="instantCode" class="iata-code">FD</span>
+      </div>
+      <p id="instantNotes" class="instant-notes"></p>
+    </div>
+
+    <!-- Directory Card List -->
+    <section>
+      <div class="section-title">
+        <span>Airlines Index</span>
+        <span id="matchCount" style="color: var(--accent-blue);">0</span>
+      </div>
+
+      <div id="airlineList" class="airline-list">
+        <!-- Dynamically Populated via JS -->
+      </div>
+    </section>
+
+    <!-- Transfer Logistics Guide -->
+    <section class="guide-box">
+      <h2>DMK Airport & Transfer Logistics</h2>
+      
+      <h3>Terminal Structure</h3>
+      <p>Don Mueang uses two physically connected passenger terminals within walking distance inside the same building:</p>
+      <ul>
+        <li><strong>Terminal 1:</strong> All International departures and arrivals.</li>
+        <li><strong>Terminal 2:</strong> All Domestic departures and arrivals across Thailand.</li>
+      </ul>
+
+      <h3>Free Shuttle Bus to Suvarnabhumi (BKK)</h3>
+      <p>Airports of Thailand (AOT) runs a <strong>free shuttle bus</strong> for passengers connecting between DMK and BKK with a valid flight ticket:</p>
+      <ul>
+        <li><strong>DMK Pick-up Location:</strong> Terminal 1, Level 1, Gate 6.</li>
+        <li><strong>Transit Time:</strong> 50–90+ minutes depending on Bangkok expressway traffic.</li>
+      </ul>
+    </section>
+
+    <footer class="site-footer">
+      <p>&copy; 2026 WhichTerminal.com. Data verified with Airports of Thailand (AOT).</p>
+      <div class="footer-links">
+        <a href="/">Home</a>
+        <a href="/bkk.html">Suvarnabhumi (BKK)</a>
+        <a href="/dmk.html">Don Mueang (DMK)</a>
+        <a href="/about.html">About</a>
+        <a href="/privacy.html">Privacy</a>
+        <a href="/contact.html">Contact</a>
+      </div>
+    </footer>
+  </div>
+<script src="dmk-database.js"></script>
+</body>
+</html>

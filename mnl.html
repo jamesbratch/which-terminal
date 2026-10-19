@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WhichTerminal.com — Manila NAIA Terminal Guide & Airline Directory (2026)</title>
+  
+  <!-- SEO & Canonical -->
+  <meta name="description" content="Instant, verified airline terminal mappings for Manila Ninoy Aquino International Airport (NAIA). Check PAL, Cebu Pacific, AirAsia, and international terminals.">
+  <link rel="canonical" href="https://whichterminal.com/">
+
+  <!-- OpenGraph Meta Tags -->
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://whichterminal.com/">
+  <meta property="og:title" content="Which Terminal Is Your Flight At? — WhichTerminal.com">
+  <meta property="og:description" content="Verified Manila NAIA airline terminal directory. Fast, offline-capable terminal lookup utility.">
+  <meta property="og:image" content="https://whichterminal.com/assets/og-preview.png">
+
+  <!-- PWA & Favicon Icons -->
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+  <link rel="manifest" href="/site.webmanifest">
+  <meta name="theme-color" content="#0f172a">
+
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- Sticky Mobile Nav Header -->
+  <nav class="top-nav">
+    <a href="/" class="brand">WhichTerminal<span class="tld">.com</span></a>
+    <span class="nav-badge">MNL Directory</span>
+  </nav>
+
+  <div class="page-wrapper">
+    <!-- Header -->
+    <header class="hero-header">
+      <h1>Manila NAIA Terminal Finder</h1>
+      <p class="hero-subtext">Verified airline terminal mappings for Ninoy Aquino International Airport.</p>
+      
+      <div class="verified-meta">
+        <span>✓</span> Data Verified: October 2026 Schedule
+      </div>
+    </header>
+
+    <!-- Toolbar: Search + Touch Filter Pills -->
+    <section class="toolbar">
+      <div class="search-field">
+        <span class="search-icon">🔍</span>
+        <input type="text" id="airlineSearch" placeholder="Search airline or flight code (e.g. Cebu, PAL, EK)..." autocomplete="off">
+      </div>
+
+      <div class="filter-scroll">
+        <button class="filter-pill active" data-filter="all">All Terminals</button>
+        <button class="filter-pill" data-filter="Terminal 1">Terminal 1</button>
+        <button class="filter-pill" data-filter="Terminal 2">Terminal 2</button>
+        <button class="filter-pill" data-filter="Terminal 3">Terminal 3</button>
+      </div>
+    </section>
+
+    <!-- Instant Search Highlighting Result -->
+    <div id="instantCard" class="instant-result-card">
+      <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+        <div>
+          <div id="instantAirline" class="instant-title">Cebu Pacific (5J)</div>
+          <div id="instantTerminal" class="instant-terminal">Terminal 3</div>
+        </div>
+        <span id="instantCode" class="iata-code">5J</span>
+      </div>
+      <p id="instantNotes" class="instant-notes"></p>
+    </div>
+
+    <!-- Directory Card List -->
+    <section>
+      <div class="section-title">
+        <span>Airlines Index</span>
+        <span id="matchCount" style="color: var(--accent-blue);">30</span>
+      </div>
+
+      <div id="airlineList" class="airline-list">
+        <!-- Dynamically Populated via JS -->
+      </div>
+    </section>
+
+    <!-- Mobile Transfer Guide -->
+    <section class="guide-box">
+      <h2>NAIA Transfer Logistics</h2>
+      
+      <h3>PAL & AirAsia Terminal Split</h3>
+      <p>International flights for both Philippine Airlines and AirAsia depart from <strong>Terminal 1</strong>. All domestic flights for both carriers depart from <strong>Terminal 2</strong>.</p>
+
+      <h3>Inter-Terminal Transit Times</h3>
+      <p>Terminals 1, 2, and 3 are separated by active runway grounds. Ground transit via Grab or taxi typically takes:</p>
+      <ul>
+        <li><strong>Terminal 1 ↔ Terminal 2:</strong> 5–10 minutes</li>
+        <li><strong>Terminal 1/2 ↔ Terminal 3:</strong> 30–60 minutes in traffic</li>
+      </ul>
+    </section>
+
+    <footer class="site-footer">
+      <p>&copy; 2026 WhichTerminal.com. Verification data sourced from MIAA Operations.</p>
+      <div class="footer-links">
+        <a href="/">Home</a>
+        <a href="/about.html">About</a>
+        <a href="/privacy.html">Privacy</a>
+        <a href="/contact.html">Contact</a>
+      </div>
+    </footer>
+  </div>
+
+  <script 
+  
+  src="mnl-database.js">
+
+</script>
+</body>
+</html>

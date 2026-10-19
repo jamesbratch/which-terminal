@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WhichTerminal.com — Southeast Asia Airport Terminal Guide</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- Sticky Mobile Nav Header -->
+  <nav class="top-nav">
+    <a href="/" class="brand">WhichTerminal<span class="tld">.com</span>
+    </a>
+    <span class="nav-badge">Verified Hubs</span>
+  </nav>
+
+  <div class="page-wrapper">
+    <!-- Header Banner -->
+    <header class="hero-header">
+      <h1>Southeast Asia Airport Terminal Finder</h1>
+      <p class="hero-subtext">Verified airline terminal mappings, transfer logistics, and travel warnings for complex regional transit hubs.</p>
+      
+      <div class="verified-meta">
+        <span>✓</span> Data Updated: October 2026
+      </div>
+    </header>
+
+
+<!-- Connection Risk Calculator Widget -->
+<section class="calculator-container" style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 20px; margin-bottom: 32px;">
+  <div style="margin-bottom: 16px;">
+    <h2 style="font-size: 1.25rem; font-weight: 800; color: #fff; margin-bottom: 4px;">⚡ Self-Transfer Risk Calculator</h2>
+    <p style="font-size: 0.85rem; color: var(--text-muted);">Select your connecting airlines and layover window to calculate real-world transit risk.</p>
+  </div>
+
+  <form id="riskCalcForm" style="display: flex; flex-direction: column; gap: 14px;">
+    
+    <!-- Airport Hub Selector -->
+    <div>
+      <label style="display: block; font-size: 0.8rem; font-weight: 600; color: var(--text-muted); margin-bottom: 6px;">AIRPORT HUB</label>
+      <select id="calcHub" style="width: 100%; background: var(--bg-input); border: 1px solid var(--border-color); color: #fff; padding: 12px; border-radius: 8px; font-size: 0.9rem; outline: none;">
+        <option value="MNL">🇵🇭 Manila Ninoy Aquino (NAIA)</option>
+        <option value="BKK">🇹🇭 Bangkok Suvarnabhumi (BKK) and Bangkok Don Mueang (DMK)</option>
+      </select>
+    </div>
+
+    <!-- Incoming Airline Dropdown (Auto-filled by JS) -->
+    <div>
+      <label style="display: block; font-size: 0.8rem; font-weight: 600; color: var(--text-muted); margin-bottom: 6px;">INCOMING AIRLINE</label>
+      <select id="calcInAirline" style="width: 100%; background: var(--bg-input); border: 1px solid var(--border-color); color: #fff; padding: 12px; border-radius: 8px; font-size: 0.9rem; outline: none;">
+        <option value="">-- Select Hub First --</option>
+      </select>
+    </div>
+
+    <!-- Outgoing Airline Dropdown (Auto-filled by JS) -->
+    <div>
+      <label style="display: block; font-size: 0.8rem; font-weight: 600; color: var(--text-muted); margin-bottom: 6px;">OUTGOING AIRLINE</label>
+      <select id="calcOutAirline" style="width: 100%; background: var(--bg-input); border: 1px solid var(--border-color); color: #fff; padding: 12px; border-radius: 8px; font-size: 0.9rem; outline: none;">
+        <option value="">-- Select Hub First --</option>
+      </select>
+    </div>
+
+    <!-- Layover Window Inputs -->
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+      <div>
+        <label style="display: block; font-size: 0.8rem; font-weight: 600; color: var(--text-muted); margin-bottom: 6px;">LAYOVER HOURS</label>
+        <input type="number" id="calcHours" min="0" max="24" value="2" placeholder="Hours" style="width: 100%; background: var(--bg-input); border: 1px solid var(--border-color); color: #fff; padding: 12px; border-radius: 8px; font-size: 0.9rem; outline: none;">
+      </div>
+      <div>
+        <label style="display: block; font-size: 0.8rem; font-weight: 600; color: var(--text-muted); margin-bottom: 6px;">MINUTES</label>
+        <input type="number" id="calcMins" min="0" max="59" value="30" placeholder="Mins" style="width: 100%; background: var(--bg-input); border: 1px solid var(--border-color); color: #fff; padding: 12px; border-radius: 8px; font-size: 0.9rem; outline: none;">
+      </div>
+    </div>
+
+    <!-- Toggles -->
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 4px;">
+      <label style="display: flex; align-items: center; gap: 8px; font-size: 0.85rem; color: var(--text-main); cursor: pointer;">
+        <input type="checkbox" id="calcIntl" checked style="accent-color: var(--accent-blue); width: 16px; height: 16px;">
+        Intl Flight (Immigration)
+      </label>
+      <label style="display: flex; align-items: center; gap: 8px; font-size: 0.85rem; color: var(--text-main); cursor: pointer;">
+        <input type="checkbox" id="calcBags" checked style="accent-color: var(--accent-blue); width: 16px; height: 16px;">
+        Checked Baggage
+      </label>
+    </div>
+
+    <!-- Submit Button -->
+    <button type="button" id="calcSubmitBtn" class="card-btn" style="background: var(--accent-blue); color: #000; border: none; font-weight: 700; margin-top: 8px; cursor: pointer;">
+      Evaluate Connection Risk →
+    </button>
+  </form>
+
+  <!-- Risk Result Display Area -->
+  <div id="calcResult" style="display: none; margin-top: 20px; padding: 16px; border-radius: 8px; border: 1px solid var(--border-color);">
+    <div id="riskBadge" style="display: inline-block; font-weight: 800; font-size: 0.9rem; padding: 4px 10px; border-radius: 6px; margin-bottom: 8px;"></div>
+    <div id="riskTitle" style="font-size: 1.1rem; font-weight: 700; color: #fff; margin-bottom: 4px;"></div>
+    <p id="riskDesc" style="font-size: 0.85rem; color: var(--text-muted); line-height: 1.45;"></p>
+    <div id="riskBreakdown" style="margin-top: 12px; padding-top: 12px; border-top: 1px dashed var(--border-color); font-size: 0.8rem; color: var(--text-dim);"></div>
+  </div>
+</section>
+
+
+
+    <!-- Toolbar: Global Quick Search -->
+    <section class="toolbar">
+      <div class="search-field">
+        <span class="search-icon">🔍</span>
+        <input type="text" id="globalSearch" placeholder="Search airline or airport (e.g. Cebu Pacific, NAIA, AirAsia)..." autocomplete="off">
+      </div>
+    </section>
+
+    <!-- Global Quick Search Hero Result -->
+    <div id="instantCard" class="instant-result-card">
+      <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+        <div>
+          <div id="instantAirline" class="instant-title">Cebu Pacific (5J)</div>
+          <div id="instantTerminal" class="instant-terminal">Terminal 3</div>
+        </div>
+        <span id="instantCode" class="iata-code">5J</span>
+      </div>
+      <p id="instantNotes" class="instant-notes"></p>
+      <div style="margin-top: 12px; border-top: 1px solid var(--border-color); padding-top: 8px;">
+        <a id="instantLink" href="manila-naia.html" style="color: var(--accent-blue); font-size: 0.85rem; font-weight: 600; text-decoration: none;">Open Manila NAIA Full Directory →</a>
+      </div>
+    </div>
+
+    <!-- Hub Directories List -->
+    <section>
+      <div class="section-title">
+        <span>Airport Hub Directories</span>
+        <span style="color: var(--accent-blue);">3 Hubs</span>
+      </div>
+
+      <div class="airline-list">
+        <!-- Manila -->
+<div class="airline-card">
+  <div class="airline-card-top">
+    <span class="airline-name">🇵🇭 Manila Ninoy Aquino (NAIA)</span>
+    <span class="iata-code">MNL</span>
+  </div>
+  <span class="terminal-tag t1">4 Terminals Active</span>
+  <p class="airline-notes">High connection confusion risk. Terminals are physically separated around the runway network without walking links.</p>
+  
+  <div style="margin-top: 12px;">
+    <a href="mnl.html" class="card-btn">MNL Directory →</a>
+  </div>
+</div>
+
+<!-- Bangkok Hubs -->
+<div class="airline-card">
+  <div class="airline-card-top">
+    <span class="airline-name">🇹🇭 Bangkok Hubs (BKK & DMK)</span>
+    <span class="iata-code">BKK / DMK</span>
+  </div>
+  <span class="terminal-tag t3">2 Airports Split</span>
+  <p class="airline-notes">Suvarnabhumi (BKK) full-service & SAT-1 vs. Don Mueang (DMK) low-cost carrier split and airport shuttle transfer timings.</p>
+  
+  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 12px;">
+    <a href="bkk.html" class="card-btn">BKK Guide →</a>
+    <a href="dmk.html" class="card-btn">DMK Guide →</a>
+  </div>
+</div>
+
+        <!-- Kuala Lumpur Card (Upcoming) -->
+        <div class="airline-card" style="opacity: 0.65;">
+          <div class="airline-card-top">
+            <span class="airline-name">🇲🇾 Kuala Lumpur (KLIA 1 & 2)</span>
+            <span class="iata-code">KUL</span>
+          </div>
+          <span class="terminal-tag t2">2 Terminals Split</span>
+          <p class="airline-notes">Mainline carriers at KLIA1 vs. AirAsia / budget carriers at KLIA2. Express rail connection guide included.</p>
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 4px; font-size: 0.8rem;">
+            <span style="color: var(--text-dim);">Updating Assignments</span>
+            <span style="color: var(--text-dim);">Coming Soon</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Context & Survival Guide Section -->
+    <section class="guide-box">
+      <h2>Why Terminal Verification Matters in SEA</h2>
+      <p>Unlike Western transit hubs with intra-terminal passenger movers, airports like Manila, Bangkok, and Kuala Lumpur require exiting security and transferring across busy municipal roads.</p>
+      <ul>
+        <li><strong>Physical Isolation:</strong> Getting to the wrong terminal in Manila or Bangkok can delay you 45–60 minutes in ground traffic.</li>
+        <li><strong>Carrier Shifts:</strong> Budget airlines in Southeast Asia frequently shift terminals during schedule updates.</li>
+      </ul>
+    </section>
+
+    <!-- Footer -->
+    <footer class="site-footer">
+      <p>&copy; 2026 TransitHub SEA. All rights reserved.</p>
+      <div class="footer-links">
+        <a href="index.html">Home</a>
+        <a href="about.html">About</a>
+        <a href="privacy.html">Privacy</a>
+        <a href="contact.html">Contact</a>
+      </div>
+    </footer>
+  </div>
+
+  <script>
+    const globalDatabase = [
+      { name: "Cebu Pacific", code: "5J", hub: "Manila (NAIA)", terminal: "Terminal 3", url: "manila-naia.html", notes: "Mainline domestic and international flights." },
+      { name: "CebGo", code: "DG", hub: "Manila (NAIA)", terminal: "Terminal 2", url: "manila-naia.html", notes: "Regional domestic turboprop flights." },
+      { name: "Philippine Airlines", code: "PR", hub: "Manila (NAIA)", terminal: "Terminal 1 (Intl) / Terminal 2 (Dom)", url: "manila-naia.html", notes: "International flights at T1; Domestic flights at T2." },
+      { name: "AirAsia Philippines", code: "Z2", hub: "Manila (NAIA)", terminal: "Terminal 1 (Intl) / Terminal 2 (Dom)", url: "manila-naia.html", notes: "International flights at T1; Domestic flights at T2." },
+      { name: "Emirates", code: "EK", hub: "Manila (NAIA)", terminal: "Terminal 3", url: "manila-naia.html", notes: "Dubai long-haul flights." },
+      { name: "Singapore Airlines", code: "SQ", hub: "Manila (NAIA)", terminal: "Terminal 3", url: "manila-naia.html", notes: "Singapore hub flights." }
+    ];
+
+    const globalSearch = document.getElementById('globalSearch');
+    const instantCard = document.getElementById('instantCard');
+    const instantAirline = document.getElementById('instantAirline');
+    const instantTerminal = document.getElementById('instantTerminal');
+    const instantNotes = document.getElementById('instantNotes');
+    const instantCode = document.getElementById('instantCode');
+    const instantLink = document.getElementById('instantLink');
+
+    globalSearch.addEventListener('input', (e) => {
+      const query = e.target.value.toLowerCase().trim();
+      
+      if (query.length >= 2) {
+        const match = globalDatabase.find(a => 
+          a.name.toLowerCase().includes(query) || 
+          a.code.toLowerCase().includes(query) ||
+          a.hub.toLowerCase().includes(query)
+        );
+
+        if (match) {
+          instantAirline.textContent = match.name + " — " + match.hub;
+          instantTerminal.textContent = match.terminal;
+          instantNotes.textContent = match.notes;
+          instantCode.textContent = match.code;
+          instantLink.href = match.url;
+          instantCard.classList.add('active');
+        } else {
+          instantCard.classList.remove('active');
+        }
+      } else {
+        instantCard.classList.remove('active');
+      }
+    });
+  </script>
+  <script src="bkk-database.js"></script>
+  <script src="dmk-database.js"></script>
+  <script src="mnl-database.js"></script>
+  <script src="connection-calculator.js"></script>
+</body>
+</html>

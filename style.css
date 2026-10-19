@@ -1,0 +1,384 @@
+:root {
+  --bg-main: #0c0e12;
+  --bg-card: #141822;
+  --bg-input: #1a202c;
+  --border-color: #262e3e;
+  --text-main: #f1f5f9;
+  --text-muted: #94a3b8;
+  --text-dim: #64748b;
+  --accent-blue: #38bdf8;
+  --accent-green: #34d399;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  -webkit-tap-highlight-color: transparent;
+}
+
+body {
+  background-color: var(--bg-main);
+  color: var(--text-main);
+  line-height: 1.5;
+  min-height: 100vh;
+  padding: 0;
+}
+
+/* Sticky Mobile Navigation */
+.top-nav {
+  background-color: var(--bg-card);
+  border-bottom: 1px solid var(--border-color);
+  padding: 12px 16px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.nav-brand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  text-decoration: none;
+  color: #fff;
+  font-weight: 700;
+  font-size: 1rem;
+}
+
+.nav-badge {
+  font-size: 0.65rem;
+  font-weight: 700;
+  background-color: rgba(56, 189, 248, 0.15);
+  color: var(--accent-blue);
+  padding: 2px 6px;
+  border-radius: 4px;
+  border: 1px solid rgba(56, 189, 248, 0.3);
+}
+
+.nav-links {
+  display: flex;
+  gap: 12px;
+}
+
+.nav-links a {
+  color: var(--text-muted);
+  text-decoration: none;
+  font-size: 0.82rem;
+  font-weight: 500;
+}
+
+/* Main Container with Mobile Side Margins */
+.page-wrapper {
+  width: 100%;
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 20px 16px 40px; /* Ensures 16px edge buffer on all mobile screens */
+}
+
+/* Header Banner */
+.hero-header {
+  margin-bottom: 24px;
+  border-bottom: 1px solid var(--border-color);
+  padding-bottom: 16px;
+}
+
+.hero-header h1 {
+  font-size: 1.5rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1.25;
+  margin-bottom: 6px;
+  color: #ffffff;
+}
+
+.hero-subtext {
+  color: var(--text-muted);
+  font-size: 0.88rem;
+  line-height: 1.45;
+}
+
+.verified-meta {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 12px;
+  font-size: 0.78rem;
+  color: var(--accent-green);
+  font-weight: 600;
+  background-color: rgba(52, 211, 153, 0.1);
+  padding: 4px 10px;
+  border-radius: 6px;
+  border: 1px solid rgba(52, 211, 153, 0.25);
+}
+
+/* Mobile Search & Filter Toolbar */
+.toolbar {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.search-field {
+  position: relative;
+  width: 100%;
+}
+
+.search-field input {
+  width: 100%;
+  background-color: var(--bg-input);
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  padding: 14px 16px 14px 42px;
+  color: #fff;
+  font-size: 0.95rem;
+  outline: none;
+}
+
+.search-field input:focus {
+  border-color: var(--accent-blue);
+}
+
+.search-icon {
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+/* Touch-friendly Filter Horizontal Scrollbar */
+.filter-scroll {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+  -webkit-overflow-scrolling: touch;
+}
+
+.filter-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+.filter-pill {
+  white-space: nowrap;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  color: var(--text-muted);
+  padding: 8px 14px;
+  border-radius: 20px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.filter-pill.active {
+  background-color: var(--accent-blue);
+  border-color: var(--accent-blue);
+  color: #000;
+}
+
+/* Instant Search Result Card (Hero Result) */
+.instant-result-card {
+  background-color: var(--bg-card);
+  border: 1.5px solid var(--accent-blue);
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 24px;
+  display: none;
+}
+
+.instant-result-card.active {
+  display: block;
+}
+
+.instant-title {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 4px;
+}
+
+.instant-terminal {
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: var(--accent-blue);
+  line-height: 1.1;
+  margin-bottom: 6px;
+}
+
+.instant-notes {
+  font-size: 0.88rem;
+  color: var(--text-main);
+}
+
+/* Section Titles */
+.section-title {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* Mobile Responsive Directory Cards */
+.airline-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 32px;
+}
+
+.airline-card {
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.airline-card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.airline-name {
+  font-weight: 700;
+  font-size: 0.98rem;
+  color: #ffffff;
+}
+
+.iata-code {
+  font-family: monospace;
+  background-color: var(--bg-main);
+  border: 1px solid var(--border-color);
+  color: var(--accent-blue);
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
+.terminal-tag {
+  display: inline-block;
+  font-weight: 700;
+  font-size: 0.8rem;
+  padding: 3px 8px;
+  border-radius: 6px;
+  width: fit-content;
+}
+
+.t1 { background-color: rgba(239, 68, 68, 0.15); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.3); }
+.t2 { background-color: rgba(52, 211, 153, 0.15); color: #34d399; border: 1px solid rgba(52, 211, 153, 0.3); }
+.t3 { background-color: rgba(56, 189, 248, 0.15); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.3); }
+
+.airline-notes {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  line-height: 1.4;
+}
+
+/* Content & Transfer Guide */
+.guide-box {
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 18px;
+  margin-top: 24px;
+}
+
+.guide-box h2 {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #fff;
+  margin-bottom: 12px;
+}
+
+.guide-box h3 {
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: var(--accent-blue);
+  margin-top: 16px;
+  margin-bottom: 4px;
+}
+
+.guide-box p, .guide-box li {
+  font-size: 0.88rem;
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+
+.guide-box ul {
+  padding-left: 18px;
+  margin-top: 8px;
+}
+
+.guide-box li {
+  margin-bottom: 6px;
+}
+
+/*Button*/
+.card-btn {
+  text-decoration: none;
+  display: block;
+  text-align: center;
+  padding: 10px 16px;
+  background: rgba(56, 189, 248, 0.05);
+  border: 1px solid var(--accent-blue);
+  border-radius: 8px;
+  color: var(--accent-blue);
+  font-weight: 600;
+  font-size: 0.9rem;
+  transition: all 0.2s ease;
+}
+
+.card-btn:hover {
+  background: rgba(56, 189, 248, 0.15);
+}
+
+/* Footer */
+.site-footer {
+  margin-top: 40px;
+  border-top: 1px solid var(--border-color);
+  padding-top: 20px;
+  text-align: center;
+  font-size: 0.78rem;
+  color: var(--text-dim);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.footer-links {
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+}
+
+.footer-links a {
+  color: var(--text-muted);
+  text-decoration: none;
+}
+
+/* Desktop layout optimizations for wide screens */
+@media (min-width: 640px) {
+  .hero-header h1 {
+    font-size: 1.85rem;
+  }
+  .page-wrapper {
+    padding: 32px 24px 60px;
+  }
+}

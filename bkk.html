@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WhichTerminal.com — Bangkok Suvarnabhumi Airport (BKK) Terminal Finder</title>
+  
+  <!-- SEO & Canonical -->
+  <meta name="description" content="Verified terminal and concourse guide for Bangkok Suvarnabhumi Airport (BKK). Check Main Terminal vs SAT-1 Satellite Terminal gate mappings instantly.">
+  <link rel="canonical" href="https://whichterminal.com/bkk.html">
+
+  <!-- OpenGraph Meta Tags -->
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://whichterminal.com/bkk.html">
+  <meta property="og:title" content="Suvarnabhumi Airport (BKK) Terminal Directory — WhichTerminal.com">
+  <meta property="og:description" content="Instant terminal & SAT-1 satellite concourse finder for Bangkok Suvarnabhumi Airport (BKK).">
+  <meta property="og:image" content="https://whichterminal.com/assets/og-preview.png">
+
+  <!-- PWA & Favicon Icons -->
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+  <link rel="manifest" href="/site.webmanifest">
+  <meta name="theme-color" content="#0f172a">
+
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- Sticky Mobile Nav Header -->
+  <nav class="top-nav">
+    <a href="/" class="brand">WhichTerminal<span class="tld">.com</span></a>
+    <span class="nav-badge">BKK Directory</span>
+  </nav>
+
+  <div class="page-wrapper">
+    <!-- Header -->
+    <header class="hero-header">
+      <h1>Suvarnabhumi Airport (BKK)</h1>
+      <p class="hero-subtext">Verified airline terminal & SAT-1 satellite mappings for Bangkok Suvarnabhumi.</p>
+      
+      <div class="verified-meta">
+        <span>✓</span> Data Verified: October 2026 Schedule
+      </div>
+    </header>
+
+    <!-- Toolbar: Search + Touch Filter Pills -->
+    <section class="toolbar">
+      <div class="search-field">
+        <span class="search-icon">🔍</span>
+        <input type="text" id="airlineSearch" placeholder="Search airline or code (e.g. Thai Airways, TG, Emirates)..." autocomplete="off">
+      </div>
+
+      <div class="filter-scroll">
+        <button class="filter-pill active" data-filter="all">All Terminals</button>
+        <button class="filter-pill" data-filter="Main Terminal">Main Terminal</button>
+        <button class="filter-pill" data-filter="SAT-1 Concourse">SAT-1 Concourse</button>
+      </div>
+    </section>
+
+    <!-- Instant Search Highlighting Result -->
+    <div id="instantCard" class="instant-result-card">
+      <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+        <div>
+          <div id="instantAirline" class="instant-title">Thai Airways</div>
+          <div id="instantTerminal" class="instant-terminal">Main Terminal</div>
+        </div>
+        <span id="instantCode" class="iata-code">TG</span>
+      </div>
+      <p id="instantNotes" class="instant-notes"></p>
+    </div>
+
+    <!-- Directory Card List -->
+    <section>
+      <div class="section-title">
+        <span>Airlines Index</span>
+        <span id="matchCount" style="color: var(--accent-blue);">0</span>
+      </div>
+
+      <div id="airlineList" class="airline-list">
+        <!-- Dynamically Populated via JS -->
+      </div>
+    </section>
+
+    <!-- Transfer Logistics Guide -->
+    <section class="guide-box">
+      <h2>Suvarnabhumi (BKK) Gate & Transfer Logistics</h2>
+      
+      <h3>Check-in vs Departure Gate Warning</h3>
+      <p>All check-in counters, baggage drops, and security checkpoints are located in the <strong>Main Terminal Building</strong>. Selected international long-haul and regional flights depart from the <strong>SAT-1 Satellite Concourse</strong>.</p>
+
+      <h3>Connecting to SAT-1</h3>
+      <p>If your boarding pass indicates a <strong>S101–S128 gate</strong>, you must take the automated underground APM train from the Main Terminal (between Concourses D and E):</p>
+      <ul>
+        <li><strong>APM Train Transit Time:</strong> ~3 minutes ride time.</li>
+        <li><strong>Total Transfer Buffer:</strong> Allow an additional 15–20 minutes after security to reach SAT-1 gates.</li>
+      </ul>
+
+      <h3>Inter-Airport Transfer to Don Mueang (BKK ↔ DMK)</h3>
+      <p>If you need to connect to a low-cost or domestic flight operating out of Don Mueang Airport (DMK):</p>
+      <ul>
+        <li><strong>Free Airport Shuttle Bus:</strong> Airports of Thailand (AOT) operates a free shuttle bus for passengers holding a valid onward boarding pass or ticket for DMK.</li>
+        <li><strong>BKK Boarding Location:</strong> Main Terminal, Level 2, Gate 3.</li>
+        <li><strong>Transit Time:</strong> 50 to 90+ minutes depending on Bangkok highway traffic (allow at least 3.5 to 4 hours total connection time).</li>
+      </ul>
+    </section>
+
+    <footer class="site-footer">
+      <p>&copy; 2026 WhichTerminal.com. Data verified with Airports of Thailand (AOT).</p>
+      <div class="footer-links">
+        <a href="/">Home</a>
+        <a href="/bkk.html">Suvarnabhumi (BKK)</a>
+        <a href="/dmk.html">Don Mueang (DMK)</a>
+        <a href="/about.html">About</a>
+        <a href="/privacy.html">Privacy</a>
+        <a href="/contact.html">Contact</a>
+      </div>
+    </footer>
+  </div>
+<script src="bkk-database.js"></script>
+</body>
+</html>
