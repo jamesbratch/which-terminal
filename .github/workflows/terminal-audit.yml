@@ -2,46 +2,20 @@ name: Weekly Terminal Alignment Check
 
 on:
   schedule:
-    # Runs at 00:00 every Sunday
-    - cron: '0 0 * * 0'
-  workflow_dispatch: # Allows manual trigger from GitHub UI
+    - cron: '0 0 * * 1' # Runs every Monday
+  workflow_dispatch: # Allows you to click 'Run workflow' manually
 
 jobs:
-  audit-terminals:
+  audit:
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout Code
+      - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Setup Node.js
+      - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20'
 
-      - - name: Run Terminal Audit Script
-          run: node scripts/audit-db.js
-
-      - name: Create Issue on Discrepancy
-        if: failure()
-        uses: actions/github-script@v7
-        with:
-          script: |
-            const fs = require('fs');
-            const reportPath = './scripts/drift-report.json';
-            
-            if (fs.existsSync(reportPath)) {
-              const report = JSON.parse(fs.readFileSync(reportPath, 'utf8'));
-              let body = "### ⚠️ Terminal Changes Detected\n\nThe weekly automated scan found terminal discrepancies in your databases:\n\n| Hub | Airline | Code | DB Value | Live Detected |\n|---|---|---|---|---|\n";
-              
-              report.forEach(r => {
-                body += `| ${r.hub} | ${r.airline} | ${r.code} | ${r.dbTerminal} | ${r.detectedTerminal} |\n`;
-              });
-
-              github.rest.issues.create({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                title: '🚨 Terminal Drift Alert: Database Updates Required',
-                body: body
-              });
-            }
+      - name: Run Terminal Audit Script
+        run: node scripts/audit-db.js
