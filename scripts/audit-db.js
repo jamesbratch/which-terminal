@@ -2,83 +2,62 @@
 const fs = require('fs');
 const path = require('path');
 
-// Map hub codes to database files
 const DB_FILES = {
   MNL: 'mnl-database.js',
   DMK: 'dmk-database.js',
   BKK: 'bkk-database.js'
 };
 
-// 1. Helper to extract database array from local file
 function loadLocalDatabase(filename) {
   const filePath = path.join(__dirname, '..', filename);
   if (!fs.existsSync(filePath)) return [];
-  
   const content = fs.readFileSync(filePath, 'utf8');
   const jsonMatch = content.match(/const\s+\w+\s*=\s*(\[\s*\{[\s\S]*?\}\s*\]);/);
   if (!jsonMatch) return [];
-
   try {
     return eval(jsonMatch[1]);
   } catch (err) {
-    console.error(`Failed to parse ${filename}:`, err);
     return [];
   }
 }
 
-// 2. Fetch Manila (NAIA) Directory directly from newnaia.com.ph
 async function fetchOfficialManilaTerminals() {
   const terminalMap = {};
   try {
     const response = await fetch('https://newnaia.com.ph/flights/airline-information');
     const html = await response.text();
 
-    const matches = html.matchAll(/class="airline-name">([^<]+)<\/div>[\s\S]*?Terminal\s*(\d)/gi);
+    // Extracts both Airline Names and IATA Codes (e.g. Air China (CA))
+    const matches = html.matchAll(/(?:class="airline-name">([^<]+)<\/div>|([A-Z0-9]{2})\))[\s\S]*?Terminal\s*(\d)/gi);
     for (const match of matches) {
-      const airlineName = match[1].trim().toLowerCase();
-      const terminalNumber = `Terminal ${match[2]}`;
-      terminalMap[airlineName] = terminalNumber;
+      if (match[1]) terminalMap[match[1].trim().toLowerCase()] = `Terminal ${match[3]}`;
+      if (match[2]) terminalMap[match[2].trim().toLowerCase()] = `Terminal ${match[3]}`;
     }
   } catch (error) {
-    console.warn('Could not fetch directly from NAIA website:', error.message);
+    console.warn('Could not fetch NAIA site:', error.message);
   }
   return terminalMap;
 }
 
-// 3. Check Don Mueang (DMK) Terminal structure
 async function fetchOfficialDMKTerminals() {
   const terminalMap = {};
   try {
     const response = await fetch('https://www.donmueangairport.com/');
     const html = await response.text();
-
     const t2Matches = html.matchAll(/(AirAsia|Thai Lion|Nok Air|Bangkok Airways|THAI Smile)/gi);
     for (const match of t2Matches) {
       terminalMap[match[1].toLowerCase()] = 'Terminal 2';
     }
   } catch (error) {
-    console.warn('Could not fetch DMK directory:', error.message);
+    console.warn('Could not fetch DMK site:', error.message);
   }
   return terminalMap;
 }
 
-// 4. Check Suvarnabhumi (BKK) Satellite & Main Terminal mappings
 async function fetchOfficialBKKTerminals() {
-  const terminalMap = {};
-  try {
-    const response = await fetch('https://www.bangkokairportonline.com/suvarnabhumi-airport-terminal-map/');
-    const html = await response.text();
-
-    if (html.includes('SAT-1')) {
-      terminalMap['sat1_active'] = true;
-    }
-  } catch (error) {
-    console.warn('Could not fetch BKK directory:', error.message);
-  }
-  return terminalMap;
+  return {};
 }
 
-// 5. Main Audit & Auto-Sync Runner
 async function runAudit() {
   console.log("🔍 Fetching live updates directly from airport web portals...\n");
 
@@ -105,9 +84,11 @@ async function runAudit() {
         continue;
       }
 
-      // Clean airline name: removes "(Domestic)", "(International)", etc., for matching
-      const cleanedName = record.name.replace(/\s*\([^)]*\)/g, '').trim().toLowerCase();
-      const officialTerminal = dbInfo.liveMap[cleanedName] || dbInfo.liveMap[record.name.toLowerCase()];
+      // Check match by name OR IATA code
+      const cleanName = record.name.replace(/\s*\([^)]*\)/g, '').trim().toLowerCase();
+      const code = (record.code || '').toLowerCase();
+      
+      const officialTerminal = dbInfo.liveMap[cleanName] || dbInfo.liveMap[code] || dbInfo.liveMap[record.name.toLowerCase()];
 
       if (officialTerminal) {
         const normalizedLocal = record.terminal.toLowerCase().replace(/terminal\s*/, 't').trim();
@@ -127,7 +108,7 @@ async function runAudit() {
   }
 
   if (report.length > 0) {
-    console.warn("\n⚠️ TERMINAL DISCREPANCIES DETECTED! Updating local database files...");
+    console.warn("\n⚠️ TERMINAL DISCREPANCIES DETECTED! Updating database files...");
     console.table(report);
 
     for (const item of report) {
@@ -142,7 +123,7 @@ async function runAudit() {
       console.log(`Updated ${item.airline} in ${item.file} to "${item.officialWebsiteTerminal}"`);
     }
 
-    console.log("\n✨ Database files updated locally for Pull Request generation.");
+    console.log("\n✨ Local files updated. Ready for Pull Request generation.");
   } else {
     console.log("\n✅ All local terminal databases match official airport web directories!");
   }
