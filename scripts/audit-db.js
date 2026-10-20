@@ -37,7 +37,7 @@ async function runAudit() {
       "cathay pacific": "Terminal 3",
       "emirates": "Terminal 3"
     },
-    // Bangkok Suvarnabhumi (BKK) - preserving exact expected terminology
+    // Bangkok Suvarnabhumi (BKK)
     "bkk": {
       "thai airways": "Main Terminal",
       "bangkok airways": "Main Terminal",
@@ -104,7 +104,7 @@ async function runAudit() {
       let content = fs.readFileSync(filePath, 'utf8');
 
       const hubDiscrepancies = report.filter(r => r.file === filename);
-      for (const item of hubDiscred => item) { // safe iteration fix
+      for (const item of hubDiscrepancies) {
         const safeAirline = item.airline.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
         const regex = new RegExp(`(name:\\s*['"]${safeAirline}['"][\\s\\S]*?terminal:\\s*['"])[^'"]+(['"])`, 'i');
         content = content.replace(regex, `$1${item.officialWebsiteTerminal}$2`);
