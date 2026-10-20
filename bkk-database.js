@@ -1,12 +1,12 @@
 const bkkDatabase = [
   // Home Hub Carriers & Thailand Mainline
-  { name: "Thai Airways", code: "TG", terminal: "Main Terminal", tag: "t1", notes: "Flag carrier; check-in Rows H/J." },
-  { name: "Bangkok Airways", code: "PG", terminal: "Main Terminal", tag: "t1", notes: "Boutique domestic & regional; check-in Row F." },
+  { name: "Thai Airways", code: "TG", terminal: "Terminal 1", tag: "t1", notes: "Flag carrier; check-in Rows H/J." },
+  { name: "Bangkok Airways", code: "PG", terminal: "Terminal 1", tag: "t1", notes: "Boutique domestic & regional; check-in Row F." },
   { name: "Thai VietJet Air", code: "VZ", terminal: "Main Terminal / SAT-1", tag: "t1", notes: "Domestic in Main Terminal; Intl departures at SAT-1." },
   { name: "Thai AirAsia X", code: "XJ", terminal: "SAT-1 Concourse", tag: "t3", notes: "Intl budget long-haul (Check-in Main Terminal Row N)." },
 
   // SAT-1 Satellite Concourse Primary Carriers
-  { name: "Emirates", code: "EK", terminal: "SAT-1 Concourse", tag: "t3", notes: "Dubai A380/777 services (Check-in Main Terminal Row T)." },
+  { name: "Emirates", code: "EK", terminal: "Terminal 1", tag: "t3", notes: "Dubai A380/777 services (Check-in Main Terminal Row T)." },
   { name: "Asiana Airlines", code: "OZ", terminal: "SAT-1 Concourse", tag: "t3", notes: "Seoul Incheon (Check-in Main Terminal)." },
   { name: "British Airways", code: "BA", terminal: "SAT-1 Concourse", tag: "t3", notes: "London Gatwick (Check-in Main Terminal)." },
   { name: "Austrian Airlines", code: "OS", terminal: "SAT-1 Concourse", tag: "t3", notes: "Vienna long-haul (Check-in Main Terminal)." },
@@ -59,7 +59,7 @@ const bkkDatabase = [
   { name: "Myanmar Airways International", code: "8M", terminal: "Main Terminal", tag: "t1", notes: "Yangon & Mandalay." },
 
   // Middle Eastern & South Asian Carriers
-  { name: "Qatar Airways", code: "QR", terminal: "Main Terminal", tag: "t1", notes: "Doha long-haul; Concourses E/F/G." },
+  { name: "Qatar Airways", code: "QR", terminal: "Terminal 1", tag: "t1", notes: "Doha long-haul; Concourses E/F/G." },
   { name: "Etihad Airways", code: "EY", terminal: "Main Terminal", tag: "t1", notes: "Abu Dhabi flights." },
   { name: "Gulf Air", code: "GF", terminal: "Main Terminal", tag: "t1", notes: "Bahrain direct." },
   { name: "Oman Air", code: "WY", terminal: "Main Terminal", tag: "t1", notes: "Muscat long-haul." },
