@@ -106,14 +106,25 @@ async function runAudit() {
       const hubDiscrepancies = report.filter(r => r.file === filename);
       for (const item of hubDiscrepancies) {
         const safeAirline = item.airline.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        
+        // 1. Update the terminal string
         const regex = new RegExp(`(name:\\s*['"]${safeAirline}['"][\\s\\S]*?terminal:\\s*['"])[^'"]+(['"])`, 'i');
         content = content.replace(regex, `$1${item.officialWebsiteTerminal}$2`);
-        console.log(`✨ [${filename}] Corrected "${item.airline}" to "${item.officialWebsiteTerminal}"`);
+
+        // 2. Automatically derive and update the matching tag (e.g., "Terminal 2" -> "t2")
+        const newTagMatch = item.officialWebsiteTerminal.match(/\d+/);
+        if (newTagMatch) {
+          const newTag = `t${newTagMatch[0]}`;
+          const tagRegex = new RegExp(`(name:\\s*['"]${safeAirline}['"][\\s\\S]*?tag:\\s*['"])[^'"]+(['"])`, 'i');
+          content = content.replace(tagRegex, `$1${newTag}$2`);
+        }
+
+        console.log(`✨ [${filename}] Corrected "${item.airline}" to terminal "${item.officialWebsiteTerminal}" with matching tag.`);
       }
 
       fs.writeFileSync(filePath, content, 'utf8');
     }
-    console.log("\n💾 All database files successfully patched with correct data.");
+    console.log("\n💾 All database files successfully patched with correct data and synced tags.");
   } else {
     console.log("✅ Audit completed: All airport databases match official reference assignments perfectly.");
   }
