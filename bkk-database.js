@@ -6,7 +6,7 @@ const bkkDatabase = [
   { name: "Thai AirAsia X", code: "XJ", terminal: "SAT-1 Concourse", tag: "t3", notes: "Intl budget long-haul (Check-in Main Terminal Row N)." },
 
   // SAT-1 Satellite Concourse Primary Carriers
-  { name: "Emirates", code: "EK", terminal: "SAT-1 Concourse", tag: "t3", notes: "Dubai A380/777 services (Check-in Main Terminal Row T)." },
+  { name: "Emirates", code: "EK", terminal: "SAT-1 Concourse", tag: "t1", notes: "Dubai A380/777 services (Check-in Main Terminal Row T)." },
   { name: "Asiana Airlines", code: "OZ", terminal: "SAT-1 Concourse", tag: "t3", notes: "Seoul Incheon (Check-in Main Terminal)." },
   { name: "British Airways", code: "BA", terminal: "SAT-1 Concourse", tag: "t3", notes: "London Gatwick (Check-in Main Terminal)." },
   { name: "Austrian Airlines", code: "OS", terminal: "SAT-1 Concourse", tag: "t3", notes: "Vienna long-haul (Check-in Main Terminal)." },
