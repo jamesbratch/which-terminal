@@ -12,14 +12,23 @@ function getFilePath(preferredName, fallbackName) {
 
 function loadLocalDatabase(fileInfo) {
   if (!fileInfo.path) return [];
-  const content = fs.readFileSync(fileInfo.path, 'utf8');
-  const jsonMatch = content.match(/const\s+\w+\s*=\s*(\[\s*\{[\s\S]*?\}\s*\]);/);
-  if (!jsonMatch) return [];
-
   try {
-    return eval(jsonMatch[1]);
+    let content = fs.readFileSync(fileInfo.path, 'utf8');
+
+    // Remove window assignment and DOM listeners so node can evaluate cleanly
+    content = content.replace(/window\.\w+\s*=\s*\w+;/g, '');
+    content = content.replace(/document\.addEventListener[\s\S]*/g, '');
+
+    // Extract everything between the first '[' and last ']'
+    const startIdx = content.indexOf('[');
+    const endIdx = content.lastIndexOf(']');
+
+    if (startIdx === -1 || endIdx === -1) return [];
+
+    const arrayString = content.substring(startIdx, endIdx + 1);
+    return eval(arrayString);
   } catch (err) {
-    console.error("Error evaluating database:", err);
+    console.error(`Error loading database from ${fileInfo.filename}:`, err.message);
     return [];
   }
 }
@@ -30,6 +39,7 @@ async function runAudit() {
   // Baseline official reference map
   const officialMap = {
     "philippine airlines": "Terminal 2",
+    "philippine airlines (domestic)": "Terminal 2",
     "pal express": "Terminal 2",
     "cebu pacific": "Terminal 3",
     "airasia philippines": "Terminal 2",
@@ -53,30 +63,18 @@ async function runAudit() {
     
     const officialTerminal = officialMap[record.name.toLowerCase()] || officialMap[strippedName] || officialMap[code];
 
-    console.log(`--------------------------------------------------`);
-    console.log(`Airline Record: "${record.name}"`);
-    console.log(`  - Local Terminal in File: "${record.terminal}"`);
-    console.log(`  - Stripped Name Key: "${strippedName}"`);
-    console.log(`  - Official Mapped Terminal: "${officialTerminal || 'NONE FOUND'}"`);
-
     if (officialTerminal) {
       const normalizedLocal = record.terminal.toLowerCase().replace(/terminal\s*/, 't').trim();
       const normalizedOfficial = officialTerminal.toLowerCase().replace(/terminal\s*/, 't').trim();
 
-      console.log(`  - Normalized Local: "${normalizedLocal}" vs Official: "${normalizedOfficial}"`);
-
       if (!normalizedLocal.includes(normalizedOfficial)) {
-        console.log(`  🚨 MISMATCH DETECTED! Adding to report queue.`);
+        console.log(`🚨 MISMATCH FOUND for "${record.name}": File has "${record.terminal}" | Official is "${officialTerminal}"`);
         report.push({
           airline: record.name,
           dbTerminal: record.terminal,
           officialWebsiteTerminal: officialTerminal
         });
-      } else {
-        console.log(`  ✅ Match verified.`);
       }
-    } else {
-      console.log(`  ⚠️ Skipped: No official baseline mapping found for this entry.`);
     }
   }
 
@@ -88,15 +86,18 @@ async function runAudit() {
     console.warn("⚠️ TERMINAL DISCREPANCIES DETECTED! Updating database files...");
     console.table(report);
 
+    let content = fs.readFileSync(fileInfo.path, 'utf8');
+
     for (const item of report) {
-      let content = fs.readFileSync(fileInfo.path, 'utf8');
       const safeAirline = item.airline.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
       const regex = new RegExp(`(name:\\s*['"]${safeAirline}['"][\\s\\S]*?terminal:\\s*['"])[^'"]+(['"])`, 'i');
       
       content = content.replace(regex, `$1${item.officialWebsiteTerminal}$2`);
-      fs.writeFileSync(fileInfo.path, content, 'utf8');
-      console.log(`✨ Successfully updated "${item.airline}" to "${item.officialWebsiteTerminal}" in ${fileInfo.filename}`);
+      console.log(`✨ Corrected "${item.airline}" to "${item.officialWebsiteTerminal}"`);
     }
+
+    fs.writeFileSync(fileInfo.path, content, 'utf8');
+    console.log(`\n💾 Saved updated records back to ${fileInfo.filename}`);
   } else {
     console.log("✅ Audit completed: All entries matched baseline successfully.");
   }
