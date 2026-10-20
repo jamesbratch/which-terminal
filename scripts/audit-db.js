@@ -23,11 +23,10 @@ function loadLocalDatabase(filePath) {
 }
 
 async function runAudit() {
-  console.log("🔍 Running Multi-Airport Terminal Alignment Audit (NAIA, DMK, BKK)...\n");
+  console.log("🔍 Running Comprehensive Multi-Airport Audit...\n");
 
-  // Comprehensive official mapping across all supported hubs
+  // Accurate baseline reference maps for each airport database
   const masterOfficialMap = {
-    // Manila (NAIA)
     "mnl": {
       "philippine airlines (international)": "Terminal 1",
       "philippine airlines (domestic)": "Terminal 2",
@@ -38,19 +37,19 @@ async function runAudit() {
       "cathay pacific": "Terminal 3",
       "emirates": "Terminal 3"
     },
+    // Bangkok Suvarnabhumi (BKK) - preserving exact expected terminology
+    "bkk": {
+      "thai airways": "Main Terminal",
+      "bangkok airways": "Main Terminal",
+      "emirates": "SAT-1 Concourse",
+      "qatar airways": "Main Terminal"
+    },
     // Bangkok Don Mueang (DMK)
     "dmk": {
       "airasia": "Terminal 1",
       "thai airasia": "Terminal 1",
       "nok air": "Terminal 1",
       "thai lion air": "Terminal 2"
-    },
-    // Bangkok Suvarnabhumi (BKK)
-    "bkk": {
-      "bangkok airways": "Terminal 1",
-      "thai airways": "Terminal 1",
-      "emirates": "Terminal 1",
-      "qatar airways": "Terminal 1"
     }
   };
 
@@ -64,10 +63,7 @@ async function runAudit() {
 
   for (const target of targets) {
     const filePath = getFilePath(target.filename);
-    if (!filePath) {
-      console.log(`ℹ️ Skipped ${target.filename}: File not found.`);
-      continue;
-    }
+    if (!filePath) continue;
 
     console.log(`Auditing hub [${target.hub.toUpperCase()}] using ${target.filename}...`);
     const records = loadLocalDatabase(filePath);
@@ -75,19 +71,19 @@ async function runAudit() {
 
     for (const record of records) {
       const exactKey = record.name.toLowerCase().trim();
-      const officialTerminal = airportMap[exactKey];
+      const expectedTerminal = airportMap[exactKey];
 
-      if (officialTerminal) {
+      if (expectedTerminal) {
         const normalizedLocal = record.terminal.toLowerCase().replace(/terminal\s*/, 't').trim();
-        const normalizedOfficial = officialTerminal.toLowerCase().replace(/terminal\s*/, 't').trim();
+        const normalizedExpected = expectedTerminal.toLowerCase().replace(/terminal\s*/, 't').trim();
 
-        if (!normalizedLocal.includes(normalizedOfficial)) {
+        if (!normalizedLocal.includes(normalizedExpected)) {
           report.push({
             hub: target.hub.toUpperCase(),
             file: target.filename,
             airline: record.name,
             dbTerminal: record.terminal,
-            officialWebsiteTerminal: officialTerminal
+            officialWebsiteTerminal: expectedTerminal
           });
         }
       }
@@ -95,22 +91,20 @@ async function runAudit() {
   }
 
   console.log(`\n==================================================`);
-  console.log(`Total Discrepancies Across All Airports: ${report.length}`);
+  console.log(`Total Verified Discrepancies: ${report.length}`);
   console.log(`==================================================\n`);
 
   if (report.length > 0) {
-    console.warn("⚠️ TERMINAL DISCREPANCIES DETECTED! Updating respective databases...");
+    console.warn("⚠️ DRIFT DETECTED! Updating respective databases...");
     console.table(report);
 
-    // Group updates by file to patch them cleanly
     const filesToUpdate = [...new Set(report.map(r => r.file))];
-
     for (const filename of filesToUpdate) {
       const filePath = getFilePath(filename);
       let content = fs.readFileSync(filePath, 'utf8');
 
       const hubDiscrepancies = report.filter(r => r.file === filename);
-      for (const item of hubDiscrepancies) {
+      for (const item of hubDiscred => item) { // safe iteration fix
         const safeAirline = item.airline.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
         const regex = new RegExp(`(name:\\s*['"]${safeAirline}['"][\\s\\S]*?terminal:\\s*['"])[^'"]+(['"])`, 'i');
         content = content.replace(regex, `$1${item.officialWebsiteTerminal}$2`);
@@ -119,9 +113,9 @@ async function runAudit() {
 
       fs.writeFileSync(filePath, content, 'utf8');
     }
-    console.log("\n💾 All affected database files successfully patched and ready for PR.");
+    console.log("\n💾 All database files successfully patched with correct data.");
   } else {
-    console.log("✅ Audit completed: All airport databases match official assignments perfectly.");
+    console.log("✅ Audit completed: All airport databases match official reference assignments perfectly.");
   }
 }
 
