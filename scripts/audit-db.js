@@ -26,7 +26,9 @@ function loadLocalDatabase(fileInfo) {
 async function fetchOfficialManilaTerminals() {
   const terminalMap = {};
   try {
-    const response = await fetch('https://newnaia.com.ph/flights/airline-information');
+    const response = await fetch('https://newnaia.com.ph/flights/airline-information', {
+      headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)' }
+    });
     const html = await response.text();
 
     const matches = html.matchAll(/(?:class="airline-name">([^<]+)<\/div>|([A-Z0-9]{2})\))[\s\S]*?Terminal\s*(\d)/gi);
@@ -37,22 +39,13 @@ async function fetchOfficialManilaTerminals() {
   } catch (error) {
     console.warn('Could not fetch NAIA directory:', error.message);
   }
+  
+  console.log("🔍 Scraped NAIA Map Keys:", Object.keys(terminalMap));
   return terminalMap;
 }
 
 async function fetchOfficialDMKTerminals() {
-  const terminalMap = {};
-  try {
-    const response = await fetch('https://www.donmueangairport.com/');
-    const html = await response.text();
-    const t2Matches = html.matchAll(/(AirAsia|Thai Lion|Nok Air|Bangkok Airways|THAI Smile)/gi);
-    for (const match of t2Matches) {
-      terminalMap[match[1].toLowerCase()] = 'Terminal 2';
-    }
-  } catch (error) {
-    console.warn('Could not fetch DMK directory:', error.message);
-  }
-  return terminalMap;
+  return {};
 }
 
 async function fetchOfficialBKKTerminals() {
@@ -73,9 +66,7 @@ async function runAudit() {
   const bkkFile = getFilePath('bkk-database.js', 'bkk-database.js');
 
   const databases = [
-    { name: "Manila (NAIA)", fileInfo: mnlFile, hub: "MNL", liveMap: mnlLiveMap },
-    { name: "Bangkok (DMK)", fileInfo: dmkFile, hub: "DMK", liveMap: dmkLiveMap },
-    { name: "Bangkok (BKK)", fileInfo: bkkFile, hub: "BKK", liveMap: bkkLiveMap }
+    { name: "Manila (NAIA)", fileInfo: mnlFile, hub: "MNL", liveMap: mnlLiveMap }
   ];
 
   const report = [];
@@ -85,15 +76,14 @@ async function runAudit() {
     const records = loadLocalDatabase(dbInfo.fileInfo);
 
     for (const record of records) {
-      if (record.terminal.includes('/') || record.terminal.includes('Main Terminal / SAT-1')) {
-        continue;
-      }
+      if (record.terminal.includes('/')) continue;
 
-      // Strip parentheses string for lookup (e.g. "Philippine Airlines (Domestic)" -> "philippine airlines")
       const strippedName = record.name.replace(/\s*\([^)]*\)/g, '').trim().toLowerCase();
       const code = (record.code || '').toLowerCase();
       
       const officialTerminal = dbInfo.liveMap[record.name.toLowerCase()] || dbInfo.liveMap[strippedName] || dbInfo.liveMap[code];
+
+      console.log(`Checking: ${record.name} (Code: ${code}) -> Found Live: ${officialTerminal || 'NOT FOUND IN LIVE MAP'}`);
 
       if (officialTerminal) {
         const normalizedLocal = record.terminal.toLowerCase().replace(/terminal\s*/, 't').trim();
@@ -118,14 +108,12 @@ async function runAudit() {
 
     for (const item of report) {
       let content = fs.readFileSync(item.fileInfo.path, 'utf8');
-
-      // Escape special characters in regex including parentheses
       const safeAirline = item.airline.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
       const regex = new RegExp(`(name:\\s*['"]${safeAirline}['"][\\s\\S]*?terminal:\\s*['"])[^'"]+(['"])`, 'i');
       
       content = content.replace(regex, `$1${item.officialWebsiteTerminal}$2`);
       fs.writeFileSync(item.fileInfo.path, content, 'utf8');
-      console.log(`Updated "${item.airline}" in ${item.fileInfo.filename} to "${item.officialWebsiteTerminal}"`);
+      console.log(`Updated "${item.airline}" to "${item.officialWebsiteTerminal}"`);
     }
 
     console.log("\n✨ Local files updated. Ready for Pull Request generation.");
