@@ -3,7 +3,11 @@ name: Weekly Terminal Alignment Check
 on:
   schedule:
     - cron: '0 0 * * 1' # Runs every Monday
-  workflow_dispatch: # Allows you to click 'Run workflow' manually
+  workflow_dispatch: # Allows manual run
+
+permissions:
+  contents: write
+  pull-requests: write
 
 jobs:
   audit:
@@ -19,3 +23,20 @@ jobs:
 
       - name: Run Terminal Audit Script
         run: node scripts/audit-db.js
+
+      - name: Create Pull Request on Terminal Drift
+        uses: peter-evans/create-pull-request@v6
+        with:
+          commit-message: "chore(auto-sync): update terminal assignments from airport portals"
+          title: "🚨 Automated Terminal Update PR"
+          body: |
+            ### ✈️ Airport Terminal Alignment Sync
+            
+            The automated weekly audit detected changes on official airport portals (NAIA, AOT, DMK) and updated the database files accordingly.
+            
+            Please review the modified files below and click **Merge pull request** to publish the changes live!
+          branch: auto-terminal-update
+          delete-branch: true
+          labels: |
+            automated-pr
+            database

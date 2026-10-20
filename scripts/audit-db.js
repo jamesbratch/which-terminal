@@ -2,6 +2,13 @@
 const fs = require('fs');
 const path = require('path');
 
+// Map hub codes to database files
+const DB_FILES = {
+  MNL: 'mnl-database.js',
+  DMK: 'dmk-database.js',
+  BKK: 'bkk-database.js'
+};
+
 // 1. Helper to extract database array from local file
 function loadLocalDatabase(filename) {
   const filePath = path.join(__dirname, '..', filename);
@@ -26,11 +33,10 @@ async function fetchOfficialManilaTerminals() {
     const response = await fetch('https://newnaia.com.ph/flights/airline-information');
     const html = await response.text();
 
-    // Regex match airline names and terminal assignments in page markup
     const matches = html.matchAll(/class="airline-name">([^<]+)<\/div>[\s\S]*?Terminal\s*(\d)/gi);
     for (const match of matches) {
       const airlineName = match[1].trim().toLowerCase();
-      const terminalNumber = `T${match[2]}`;
+      const terminalNumber = `Terminal ${match[2]}`;
       terminalMap[airlineName] = terminalNumber;
     }
   } catch (error) {
@@ -48,7 +54,7 @@ async function fetchOfficialDMKTerminals() {
 
     const t2Matches = html.matchAll(/(AirAsia|Thai Lion|Nok Air|Bangkok Airways|THAI Smile)/gi);
     for (const match of t2Matches) {
-      terminalMap[match[1].toLowerCase()] = 'T2';
+      terminalMap[match[1].toLowerCase()] = 'Terminal 2';
     }
   } catch (error) {
     console.warn('Could not fetch DMK directory:', error.message);
@@ -72,7 +78,7 @@ async function fetchOfficialBKKTerminals() {
   return terminalMap;
 }
 
-// 5. Main Audit Runner
+// 5. Main Audit & Auto-Sync Runner
 async function runAudit() {
   console.log("🔍 Fetching live updates directly from airport web portals...\n");
 
@@ -83,9 +89,9 @@ async function runAudit() {
   ]);
 
   const databases = [
-    { name: "Manila (NAIA)", file: "mnl-database.js", hub: "MNL", liveMap: mnlLiveMap },
-    { name: "Bangkok (DMK)", file: "dmk-database.js", hub: "DMK", liveMap: dmkLiveMap },
-    { name: "Bangkok (BKK)", file: "bkk-database.js", hub: "BKK", liveMap: bkkLiveMap }
+    { name: "Manila (NAIA)", file: DB_FILES.MNL, hub: "MNL", liveMap: mnlLiveMap },
+    { name: "Bangkok (DMK)", file: DB_FILES.DMK, hub: "DMK", liveMap: dmkLiveMap },
+    { name: "Bangkok (BKK)", file: DB_FILES.BKK, hub: "BKK", liveMap: bkkLiveMap }
   ];
 
   const report = [];
@@ -108,7 +114,7 @@ async function runAudit() {
           report.push({
             hub: dbInfo.hub,
             airline: record.name,
-            code: record.code,
+            file: dbInfo.file,
             dbTerminal: record.terminal,
             officialWebsiteTerminal: officialTerminal
           });
@@ -118,10 +124,23 @@ async function runAudit() {
   }
 
   if (report.length > 0) {
-    console.warn("\n⚠️ TERMINAL DISCREPANCIES DETECTED:");
+    console.warn("\n⚠️ TERMINAL DISCREPANCIES DETECTED! Updating local database files...");
     console.table(report);
-    fs.writeFileSync(path.join(__dirname, 'drift-report.json'), JSON.stringify(report, null, 2));
-    process.exit(1);
+
+    // Overwrite local database files with corrected terminal info
+    for (const item of report) {
+      const filePath = path.join(__dirname, '..', item.file);
+      let content = fs.readFileSync(filePath, 'utf8');
+
+      const safeAirline = item.airline.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      const regex = new RegExp(`(name:\\s*['"]${safeAirline}['"][\\s\\S]*?terminal:\\s*['"])[^'"]+(['"])`, 'i');
+      
+      content = content.replace(regex, `$1${item.officialWebsiteTerminal}$2`);
+      fs.writeFileSync(filePath, content, 'utf8');
+      console.log(`Updated ${item.airline} in ${item.file} to "${item.officialWebsiteTerminal}"`);
+    }
+
+    console.log("\n✨ Database files updated locally for Pull Request generation.");
   } else {
     console.log("\n✅ All local terminal databases match official airport web directories!");
   }
