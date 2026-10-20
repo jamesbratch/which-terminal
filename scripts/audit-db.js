@@ -74,16 +74,26 @@ async function runAudit() {
       const expectedTerminal = airportMap[exactKey];
 
       if (expectedTerminal) {
-        const normalizedLocal = record.terminal.toLowerCase().replace(/terminal\s*/, 't').trim();
-        const normalizedExpected = expectedTerminal.toLowerCase().replace(/terminal\s*/, 't').trim();
+        const normalizedLocalTerm = record.terminal.toLowerCase().replace(/terminal\s*/, 't').trim();
+        const normalizedExpectedTerm = expectedTerminal.toLowerCase().replace(/terminal\s*/, 't').trim();
+        
+        const expectedTagMatch = expectedTerminal.match(/\d+/);
+        const expectedTag = expectedTagMatch ? `t${expectedTagMatch[0]}` : null;
+        const localTag = record.tag ? record.tag.toLowerCase().trim() : '';
 
-        if (!normalizedLocal.includes(normalizedExpected)) {
+        // Flag discrepancy if EITHER the terminal or the tag is out of sync
+        const terminalMismatched = !normalizedLocalTerm.includes(normalizedExpectedTerm);
+        const tagMismatched = expectedTag && localTag !== expectedTag;
+
+        if (terminalMismatched || tagMismatched) {
           report.push({
             hub: target.hub.toUpperCase(),
             file: target.filename,
             airline: record.name,
             dbTerminal: record.terminal,
-            officialWebsiteTerminal: expectedTerminal
+            officialWebsiteTerminal: expectedTerminal,
+            dbTag: record.tag,
+            expectedTag: expectedTag
           });
         }
       }
@@ -111,7 +121,7 @@ async function runAudit() {
         const regex = new RegExp(`(name:\\s*['"]${safeAirline}['"][\\s\\S]*?terminal:\\s*['"])[^'"]+(['"])`, 'i');
         content = content.replace(regex, `$1${item.officialWebsiteTerminal}$2`);
 
-        // 2. Automatically derive and update the matching tag (e.g., "Terminal 2" -> "t2")
+        // 2. Automatically derive and update the matching tag
         const newTagMatch = item.officialWebsiteTerminal.match(/\d+/);
         if (newTagMatch) {
           const newTag = `t${newTagMatch[0]}`;
@@ -119,7 +129,7 @@ async function runAudit() {
           content = content.replace(tagRegex, `$1${newTag}$2`);
         }
 
-        console.log(`✨ [${filename}] Corrected "${item.airline}" to terminal "${item.officialWebsiteTerminal}" with matching tag.`);
+        console.log(`✨ [${filename}] Corrected "${item.airline}" to terminal "${item.officialWebsiteTerminal}" and tag "${newTagMatch ? `t${newTagMatch[0]}` : 'unchanged'}".`);
       }
 
       fs.writeFileSync(filePath, content, 'utf8');
