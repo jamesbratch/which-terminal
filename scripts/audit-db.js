@@ -2,7 +2,6 @@
 const fs = require('fs');
 const path = require('path');
 
-// 1. Helper to locate correct file path
 function getFilePath(preferredName, fallbackName) {
   let p = path.join(__dirname, '..', preferredName);
   if (fs.existsSync(p)) return { path: p, filename: preferredName };
@@ -11,24 +10,19 @@ function getFilePath(preferredName, fallbackName) {
   return { path: null, filename: preferredName };
 }
 
-// 2. Extract database array regardless of variable name (naiaDatabase, mnlDatabase, etc.)
 function loadLocalDatabase(fileInfo) {
   if (!fileInfo.path) return [];
   const content = fs.readFileSync(fileInfo.path, 'utf8');
-  
-  // Matches const [anyName] = [ ... ];
   const jsonMatch = content.match(/const\s+\w+\s*=\s*(\[\s*\{[\s\S]*?\}\s*\]);/);
   if (!jsonMatch) return [];
 
   try {
     return eval(jsonMatch[1]);
   } catch (err) {
-    console.error(`Failed to parse ${fileInfo.filename}:`, err);
     return [];
   }
 }
 
-// 3. Fetch Manila (NAIA) Directory directly from official portal
 async function fetchOfficialManilaTerminals() {
   const terminalMap = {};
   try {
@@ -46,7 +40,6 @@ async function fetchOfficialManilaTerminals() {
   return terminalMap;
 }
 
-// 4. Fetch Don Mueang (DMK)
 async function fetchOfficialDMKTerminals() {
   const terminalMap = {};
   try {
@@ -62,12 +55,10 @@ async function fetchOfficialDMKTerminals() {
   return terminalMap;
 }
 
-// 5. Fetch Suvarnabhumi (BKK)
 async function fetchOfficialBKKTerminals() {
   return {};
 }
 
-// 6. Audit & Auto-Sync Runner
 async function runAudit() {
   console.log("🔍 Fetching live updates directly from airport web portals...\n");
 
@@ -98,10 +89,11 @@ async function runAudit() {
         continue;
       }
 
-      const cleanName = record.name.replace(/\s*\([^)]*\)/g, '').trim().toLowerCase();
+      // Strip parentheses string for lookup (e.g. "Philippine Airlines (Domestic)" -> "philippine airlines")
+      const strippedName = record.name.replace(/\s*\([^)]*\)/g, '').trim().toLowerCase();
       const code = (record.code || '').toLowerCase();
       
-      const officialTerminal = dbInfo.liveMap[cleanName] || dbInfo.liveMap[code] || dbInfo.liveMap[record.name.toLowerCase()];
+      const officialTerminal = dbInfo.liveMap[record.name.toLowerCase()] || dbInfo.liveMap[strippedName] || dbInfo.liveMap[code];
 
       if (officialTerminal) {
         const normalizedLocal = record.terminal.toLowerCase().replace(/terminal\s*/, 't').trim();
@@ -121,18 +113,19 @@ async function runAudit() {
   }
 
   if (report.length > 0) {
-    console.warn("\n⚠️ TERMINAL DISCREPANCIES DETECTED! Updating local database files...");
+    console.warn("\n⚠️ TERMINAL DISCREPANCIES DETECTED! Updating database files...");
     console.table(report);
 
     for (const item of report) {
       let content = fs.readFileSync(item.fileInfo.path, 'utf8');
 
+      // Escape special characters in regex including parentheses
       const safeAirline = item.airline.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
       const regex = new RegExp(`(name:\\s*['"]${safeAirline}['"][\\s\\S]*?terminal:\\s*['"])[^'"]+(['"])`, 'i');
       
       content = content.replace(regex, `$1${item.officialWebsiteTerminal}$2`);
       fs.writeFileSync(item.fileInfo.path, content, 'utf8');
-      console.log(`Updated ${item.airline} in ${item.fileInfo.filename} to "${item.officialWebsiteTerminal}"`);
+      console.log(`Updated "${item.airline}" in ${item.fileInfo.filename} to "${item.officialWebsiteTerminal}"`);
     }
 
     console.log("\n✨ Local files updated. Ready for Pull Request generation.");
