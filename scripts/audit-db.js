@@ -105,7 +105,10 @@ async function runAudit() {
         continue;
       }
 
-      const officialTerminal = dbInfo.liveMap[record.name.toLowerCase()];
+      // Clean airline name: removes "(Domestic)", "(International)", etc., for matching
+      const cleanedName = record.name.replace(/\s*\([^)]*\)/g, '').trim().toLowerCase();
+      const officialTerminal = dbInfo.liveMap[cleanedName] || dbInfo.liveMap[record.name.toLowerCase()];
+
       if (officialTerminal) {
         const normalizedLocal = record.terminal.toLowerCase().replace(/terminal\s*/, 't').trim();
         const normalizedOfficial = officialTerminal.toLowerCase().replace(/terminal\s*/, 't').trim();
@@ -127,7 +130,6 @@ async function runAudit() {
     console.warn("\n⚠️ TERMINAL DISCREPANCIES DETECTED! Updating local database files...");
     console.table(report);
 
-    // Overwrite local database files with corrected terminal info
     for (const item of report) {
       const filePath = path.join(__dirname, '..', item.file);
       let content = fs.readFileSync(filePath, 'utf8');
