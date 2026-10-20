@@ -77,11 +77,13 @@ async function runAudit() {
         const normalizedLocalTerm = record.terminal.toLowerCase().replace(/terminal\s*/, 't').trim();
         const normalizedExpectedTerm = expectedTerminal.toLowerCase().replace(/terminal\s*/, 't').trim();
         
-        const expectedTagMatch = expectedTerminal.match(/\d+/);
+        // Only derive an expected tag if the official terminal starts with "Terminal"
+        const isStandardTerminal = /^terminal/i.test(expectedTerminal);
+        const expectedTagMatch = isStandardTerminal ? expectedTerminal.match(/\d+/) : null;
         const expectedTag = expectedTagMatch ? `t${expectedTagMatch[0]}` : null;
         const localTag = record.tag ? record.tag.toLowerCase().trim() : '';
 
-        // Flag discrepancy if EITHER the terminal or the tag is out of sync
+        // Flag discrepancy if terminal mismatched, OR if it's a standard terminal and tag is out of sync
         const terminalMismatched = !normalizedLocalTerm.includes(normalizedExpectedTerm);
         const tagMismatched = expectedTag && localTag !== expectedTag;
 
@@ -93,7 +95,7 @@ async function runAudit() {
             dbTerminal: record.terminal,
             officialWebsiteTerminal: expectedTerminal,
             dbTag: record.tag,
-            expectedTag: expectedTag
+            expectedTag: expectedTag || '(preserved)'
           });
         }
       }
@@ -121,15 +123,18 @@ async function runAudit() {
         const regex = new RegExp(`(name:\\s*['"]${safeAirline}['"][\\s\\S]*?terminal:\\s*['"])[^'"]+(['"])`, 'i');
         content = content.replace(regex, `$1${item.officialWebsiteTerminal}$2`);
 
-        // 2. Automatically derive and update the matching tag
-        const newTagMatch = item.officialWebsiteTerminal.match(/\d+/);
+        // 2. Automatically derive and update the matching tag ONLY if it's a standard Terminal
+        const isStandardTerminal = /^terminal/i.test(item.officialWebsiteTerminal);
+        const newTagMatch = isStandardTerminal ? item.officialWebsiteTerminal.match(/\d+/) : null;
+        
         if (newTagMatch) {
           const newTag = `t${newTagMatch[0]}`;
           const tagRegex = new RegExp(`(name:\\s*['"]${safeAirline}['"][\\s\\S]*?tag:\\s*['"])[^'"]+(['"])`, 'i');
           content = content.replace(tagRegex, `$1${newTag}$2`);
+          console.log(`✨ [${filename}] Corrected "${item.airline}" to terminal "${item.officialWebsiteTerminal}" with tag "${newTag}".`);
+        } else {
+          console.log(`✨ [${filename}] Corrected "${item.airline}" to terminal "${item.officialWebsiteTerminal}" (custom concourse tag preserved).`);
         }
-
-        console.log(`✨ [${filename}] Corrected "${item.airline}" to terminal "${item.officialWebsiteTerminal}" and tag "${newTagMatch ? `t${newTagMatch[0]}` : 'unchanged'}".`);
       }
 
       fs.writeFileSync(filePath, content, 'utf8');
