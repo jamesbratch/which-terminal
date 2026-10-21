@@ -109,8 +109,11 @@ function renderEmptyOption(inSelect, outSelect) {
   outSelect.appendChild(emptyOpt.cloneNode(true));
 }
 
+
 function evaluateConnectionRisk() {
   const hubSelect = document.getElementById('calcHub');
+  const selectedHubCode = hubSelect ? hubSelect.value : 'MNL';
+  
   const inVal = document.getElementById('calcInAirline').value;
   const outVal = document.getElementById('calcOutAirline').value;
   const hours = parseInt(document.getElementById('calcHours').value) || 0;
@@ -119,7 +122,7 @@ function evaluateConnectionRisk() {
   let isIntl = document.getElementById('calcIntl').checked;
   const hasBags = document.getElementById('calcBags').checked;
 
-  const airlines = getDatabaseForHub(hubSelect ? hubSelect.value : 'MNL');
+  const airlines = getDatabaseForHub(selectedHubCode);
   
   const incomingAirline = airlines[parseInt(inVal)];
   const outgoingAirline = airlines[parseInt(outVal)];
@@ -129,15 +132,15 @@ function evaluateConnectionRisk() {
     return;
   }
 
-  // 1. Precise Inter-Airport Detection using the 'airport' tag or terminal string
+  // 1. Dynamic Airport Tagging (Defaults to selectedHubCode if no sub-airport is specified)
+  const inAirport = incomingAirline.airport || selectedHubCode;
+  const outAirport = outgoingAirline.airport || selectedHubCode;
+
   let ruleKey = "SAME_TERMINAL";
-  
-  const inAirport = incomingAirline.airport || (incomingAirline.terminal.toLowerCase().includes('don mueang') ? 'DMK' : 'BKK');
-  const outAirport = outgoingAirline.airport || (outgoingAirline.terminal.toLowerCase().includes('don mueang') ? 'DMK' : 'BKK');
 
   if (inAirport !== outAirport) {
     ruleKey = "CROSS_AIRPORT";
-    isIntl = true; // FORCE IMMIGRATION: Inter-airport transfer always requires entering Thailand!
+    isIntl = true; // FORCE IMMIGRATION: Inter-airport transfer requires immigration entry!
   } else if (incomingAirline.terminal !== outgoingAirline.terminal) {
     ruleKey = "CROSS_TERMINAL";
   }
@@ -160,6 +163,11 @@ function evaluateConnectionRisk() {
   if (!resultCard) return;
   resultCard.style.display = 'block';
 
+  // Dynamic transfer label for breakdown (e.g. "BKK↔DMK Ground Travel" vs "Terminal Transfer")
+  const transitLabel = (ruleKey === 'CROSS_AIRPORT') 
+    ? `${inAirport}↔${outAirport} Ground Travel` 
+    : 'Transit & Terminal Transfer';
+
   if (safetyMargin < -15) {
     resultCard.style.background = 'rgba(239, 68, 68, 0.1)';
     resultCard.style.borderColor = '#ef4444';
@@ -167,7 +175,7 @@ function evaluateConnectionRisk() {
     badge.style.color = '#fff';
     badge.innerText = '☠️ VERY HIGH RISK';
     title.innerText = 'Connection Unlikely to Succeed';
-    desc.innerText = `Your ${totalLayoverMins} min layover is far less than the required ${requiredMins} mins for a BKK ➔ DMK ground transfer. You will almost certainly miss this flight.`;
+    desc.innerText = `Your ${totalLayoverMins} min layover is far less than the required ${requiredMins} mins for this transfer. You will almost certainly miss this flight.`;
   } else if (safetyMargin < 20) {
     resultCard.style.background = 'rgba(249, 115, 22, 0.1)';
     resultCard.style.borderColor = '#f97316';
@@ -175,100 +183,7 @@ function evaluateConnectionRisk() {
     badge.style.color = '#fff';
     badge.innerText = '🔴 HIGH RISK';
     title.innerText = 'Critical Window — High Traffic Risk';
-    desc.innerText = `Very tight layover between ${incomingAirline.name} [${inAirport}] and ${outgoingAirline.name} [${outAirport}]. Highway traffic or passport queues will break this connection.`;
-  } else if (safetyMargin < 50) {
-    resultCard.style.background = 'rgba(234, 179, 8, 0.1)';
-    resultCard.style.borderColor = '#eab308';
-    badge.style.background = '#eab308';
-    badge.style.color = '#000';
-    badge.innerText = '🟠 MODERATE RISK';
-    title.innerText = 'Feasible, But Proceed Quickly';
-    desc.innerText = `Manageable window with a ${safetyMargin} min safety buffer between ${inAirport} and ${outAirport}.`;
-  } else {
-    resultCard.style.background = 'rgba(16, 185, 129, 0.1)';
-    resultCard.style.borderColor = '#10b981';
-    badge.style.background = '#10b981';
-    badge.style.color = '#000';
-    badge.innerText = '🟢 LOW RISK';
-    title.innerText = 'Safe Connection Window';
-    desc.innerText = `Comfortable layover window with a ${safetyMargin} min safety buffer.`;
-  }
-
-  breakdown.innerHTML = `
-    <strong>Transfer Type:</strong> ${rule.name}<br>
-    <strong>Route:</strong> [${inAirport}] ${incomingAirline.name} ➔ [${outAirport}] ${outgoingAirline.name}<br>
-    <strong>Required Minimum Window:</strong> ${requiredMins} mins total (BKK↔DMK Ground Travel: ${rule.transit}m | Immigration: ${rule.immigration}m | Baggage: ${rule.baggage}m | Check-in Cutoff: ${rule.checkInCutoff}m)
-  `;
-}
-
-/*
-function evaluateConnectionRisk() {
-  const hubSelect = document.getElementById('calcHub');
-  const inVal = document.getElementById('calcInAirline').value;
-  const outVal = document.getElementById('calcOutAirline').value;
-  const hours = parseInt(document.getElementById('calcHours').value) || 0;
-  const mins = parseInt(document.getElementById('calcMins').value) || 0;
-  const isIntl = document.getElementById('calcIntl').checked;
-  const hasBags = document.getElementById('calcBags').checked;
-
-  const airlines = getDatabaseForHub(hubSelect ? hubSelect.value : 'MNL');
-  
-  const incomingAirline = airlines[parseInt(inVal)];
-  const outgoingAirline = airlines[parseInt(outVal)];
-
-  if (!incomingAirline || !outgoingAirline) {
-    alert("Please select valid incoming and outgoing airlines.");
-    return;
-  }
-
-  // Detect inter-airport connections (e.g. Suvarnabhumi BKK <-> Don Mueang DMK)
-  let ruleKey = "SAME_TERMINAL";
-  const inTerm = incomingAirline.terminal.toLowerCase();
-  const outTerm = outgoingAirline.terminal.toLowerCase();
-
-  const isInDMK = inTerm.includes('don mueang') || inTerm.includes('dmk');
-  const isOutDMK = outTerm.includes('don mueang') || outTerm.includes('dmk');
-
-  if ((isInDMK && !isOutDMK) || (!isInDMK && isOutDMK)) {
-    ruleKey = "CROSS_AIRPORT";
-  } else if (incomingAirline.terminal !== outgoingAirline.terminal) {
-    ruleKey = "CROSS_TERMINAL";
-  }
-
-  const rule = routeRules[ruleKey];
-
-  const totalLayoverMins = (hours * 60) + mins;
-  let requiredMins = rule.transit + rule.checkInCutoff;
-  if (isIntl) requiredMins += rule.immigration;
-  if (hasBags) requiredMins += rule.baggage;
-
-  const safetyMargin = totalLayoverMins - requiredMins;
-
-  const resultCard = document.getElementById('calcResult');
-  const badge = document.getElementById('riskBadge');
-  const title = document.getElementById('riskTitle');
-  const desc = document.getElementById('riskDesc');
-  const breakdown = document.getElementById('riskBreakdown');
-
-  if (!resultCard) return;
-  resultCard.style.display = 'block';
-
-  if (safetyMargin < -15) {
-    resultCard.style.background = 'rgba(239, 68, 68, 0.1)';
-    resultCard.style.borderColor = '#ef4444';
-    badge.style.background = '#ef4444';
-    badge.style.color = '#fff';
-    badge.innerText = '☠️ VERY HIGH RISK';
-    title.innerText = 'Connection Unlikely to Succeed';
-    desc.innerText = `Your ${totalLayoverMins} min layover is less than the required ${requiredMins} mins. Transferring from ${incomingAirline.terminal} to ${outgoingAirline.terminal} is extremely tight.`;
-  } else if (safetyMargin < 20) {
-    resultCard.style.background = 'rgba(249, 115, 22, 0.1)';
-    resultCard.style.borderColor = '#f97316';
-    badge.style.background = '#f97316';
-    badge.style.color = '#fff';
-    badge.innerText = '🔴 HIGH RISK';
-    title.innerText = 'Critical Window — High Delay Vulnerability';
-    desc.innerText = `Extremely tight connection window between ${incomingAirline.name} and ${outgoingAirline.name}. Any traffic or flight delay will result in a missed flight.`;
+    desc.innerText = `Very tight layover between ${incomingAirline.name} [${incomingAirline.terminal}] and ${outgoingAirline.name} [${outgoingAirline.terminal}]. Traffic or passport queues will break this connection.`;
   } else if (safetyMargin < 50) {
     resultCard.style.background = 'rgba(234, 179, 8, 0.1)';
     resultCard.style.borderColor = '#eab308';
@@ -289,11 +204,10 @@ function evaluateConnectionRisk() {
 
   breakdown.innerHTML = `
     <strong>Transfer Type:</strong> ${rule.name}<br>
-    <strong>Route:</strong> ${incomingAirline.name} (${incomingAirline.terminal}) ➔ ${outgoingAirline.name} (${outgoingAirline.terminal})<br>
-    <strong>Required Minimum Window:</strong> ${requiredMins} mins total (Est. Transit/Transfer: ${rule.transit}m | Check-in Cutoff: ${rule.checkInCutoff}m)
+    <strong>Route:</strong> [${inAirport}] ${incomingAirline.name} (${incomingAirline.terminal}) ➔ [${outAirport}] ${outgoingAirline.name} (${outgoingAirline.terminal})<br>
+    <strong>Required Minimum Window:</strong> ${requiredMins} mins total (${transitLabel}: ${rule.transit}m | Immigration: ${rule.immigration}m | Baggage: ${rule.baggage}m | Check-in Cutoff: ${rule.checkInCutoff}m)
   `;
 }
-*/
 
 document.addEventListener('DOMContentLoaded', () => {
   populateAirlineDropdowns();
