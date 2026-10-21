@@ -63,10 +63,21 @@ async function runAudit() {
 
   for (const target of targets) {
     const filePath = getFilePath(target.filename);
-    if (!filePath) continue;
+    
+    // DEBUG LOGS FOR GITHUB ACTIONS
+    console.log(`Checking file path for ${target.hub}: ${filePath}`);
+    
+    if (!filePath) {
+      console.error(`❌ Could not locate file at path: ${target.filename}`);
+      continue;
+    }
 
     console.log(`Auditing hub [${target.hub.toUpperCase()}] using ${target.filename}...`);
     const records = loadLocalDatabase(filePath);
+    
+    // DEBUG LOG FOR PARSED RECORDS
+    console.log(`Loaded ${records.length} records for ${target.hub}`);
+
     const airportMap = masterOfficialMap[target.hub] || {};
 
     for (const record of records) {
