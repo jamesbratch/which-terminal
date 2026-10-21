@@ -61,9 +61,9 @@ async function runAudit() {
   };
 
   const targets = [
-    { hub: "mnl", filename: "hubs/mnl/database.js" },
-    { hub: "bkk", filename: "hubs/bkk/database.js" },
-    { hub: "dmk", filename: "hubs/dmk/database.js" }
+    { hub: "mnl", filename: "hubs/mnl/mnl-database.js" },
+    { hub: "bkk", filename: "hubs/bkk/bkk-database.js" },
+    { hub: "dmk", filename: "hubs/dmk/dmk-database.js" }
   ];
 
   const report = [];
