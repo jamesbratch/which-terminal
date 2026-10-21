@@ -2,8 +2,8 @@
 const fs = require('fs');
 const path = require('path');
 
-function getFilePath(filename) {
-  const p = path.join(__dirname, '..', filename);
+function getFilePath(relativePath) {
+  const p = path.join(__dirname, '..', relativePath);
   return fs.existsSync(p) ? p : null;
 }
 
@@ -54,9 +54,9 @@ async function runAudit() {
   };
 
   const targets = [
-    { hub: "mnl", filename: "mnl-database.js" },
-    { hub: "dmk", filename: "dmk-database.js" },
-    { hub: "bkk", filename: "bkk-database.js" }
+    { hub: "mnl", filename: "hubs/mnl/database.js" },
+    { hub: "bkk", filename: "hubs/bkk/database.js" },
+    { hub: "dmk", filename: "hubs/dmk/database.js" }
   ];
 
   const report = [];
