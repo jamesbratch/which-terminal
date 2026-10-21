@@ -26,6 +26,29 @@ body {
   padding: 0;
 }
 
+.brand-logo {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+}
+
+.logo-img {
+  height: 80px;
+  width: auto;
+  object-fit: contain;
+}
+
+.site-header{
+  background-color: #0c0e12;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
 /* Sticky Mobile Navigation */
 .top-nav {
   background-color: var(--bg-card);
