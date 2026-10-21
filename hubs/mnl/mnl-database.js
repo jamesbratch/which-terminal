@@ -2,7 +2,7 @@
 const naiaDatabase = [
   // Philippine Domestic & Flag Carriers
   { name: "Philippine Airlines (International)", code: "PR", terminal: "Terminal 1", tag: "t1", notes: "Mainline international flights." },
-  { name: "Philippine Airlines (Domestic)", code: "PR", terminal: "Terminal 2", tag: "t2", notes: "Domestic mainline routes." },
+  { name: "Philippine Airlines (Domestic)", code: "PR", terminal: "Terminal 1", tag: "t1", notes: "Domestic mainline routes." },
   { name: "PAL Express (Domestic)", code: "2P", terminal: "Terminal 2", tag: "t2", notes: "PAL domestic feeder flights." },
   { name: "AirAsia Philippines (International)", code: "Z2", terminal: "Terminal 1", tag: "t1", notes: "International flights." },
   { name: "AirAsia Philippines (Domestic)", code: "Z2", terminal: "Terminal 2", tag: "t2", notes: "Domestic flights." },
