@@ -3,8 +3,15 @@ const fs = require('fs');
 const path = require('path');
 
 function getFilePath(relativePath) {
-  const p = path.join(__dirname, '..', relativePath);
-  return fs.existsSync(p) ? p : null;
+  // Try resolving from process.cwd() (Root directory in CI/CD & CLI)
+  const rootPath = path.resolve(process.cwd(), relativePath);
+  if (fs.existsSync(rootPath)) return rootPath;
+
+  // Fallback resolving relative to script location
+  const scriptRelPath = path.resolve(__dirname, '..', relativePath);
+  if (fs.existsSync(scriptRelPath)) return scriptRelPath;
+
+  return null;
 }
 
 function loadLocalDatabase(filePath) {
@@ -64,7 +71,6 @@ async function runAudit() {
   for (const target of targets) {
     const filePath = getFilePath(target.filename);
     
-    // DEBUG LOGS FOR GITHUB ACTIONS
     console.log(`Checking file path for ${target.hub}: ${filePath}`);
     
     if (!filePath) {
@@ -75,7 +81,6 @@ async function runAudit() {
     console.log(`Auditing hub [${target.hub.toUpperCase()}] using ${target.filename}...`);
     const records = loadLocalDatabase(filePath);
     
-    // DEBUG LOG FOR PARSED RECORDS
     console.log(`Loaded ${records.length} records for ${target.hub}`);
 
     const airportMap = masterOfficialMap[target.hub] || {};
