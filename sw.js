@@ -1,10 +1,10 @@
-const CACHE_NAME = 'whichterminal-v1';
+const CACHE_NAME = 'whichterminal-v2'; // Bump version to v2 so it forces an update
 const ASSETS_TO_CACHE = [
   '/',
   '/index.html',
+  '/style.css',               // <-- Added your stylesheet
   '/connection-calculator.js',
   '/manifest.json'
-  // Add any CSS files or logo image assets here
 ];
 
 // Install Event: Cache Core Assets
