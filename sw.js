@@ -50,9 +50,21 @@ self.addEventListener('activate', (event) => {
 
 // Fetch Event: Serve from Cache First, Fallback to Network
 self.addEventListener('fetch', (event) => {
+  let request = event.request;
+  
+  // If the request is for the root domain, map it to index.html in the cache
+  if (request.url.endsWith('/')) {
+    request = new Request(new URL('./index.html', request.url));
+  }
+
   event.respondWith(
-    caches.match(event.request).then((cachedResponse) => {
-      return cachedResponse || fetch(event.request);
+    caches.match(request).then((cachedResponse) => {
+      return cachedResponse || fetch(event.request).catch(() => {
+        // Optional fallback page if a requested page isn't cached
+        if (event.request.mode === 'navigate') {
+          return caches.match('/index.html');
+        }
+      });
     })
   );
 });
