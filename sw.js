@@ -1,4 +1,4 @@
-const CACHE_NAME = 'whichterminal-v4';
+const CACHE_NAME = 'whichterminal-v5';
 const ASSETS_TO_CACHE = [
   '/',
   '/index.html',
@@ -7,9 +7,9 @@ const ASSETS_TO_CACHE = [
   '/manifest.json',
   
   // Hub Data Files
-  '/hubs/mnl/mnl.html',
-  '/hubs/bkk/bkk.html',
-  '/hubs/dmk/dmk.html',
+  '/hubs/mnl/mnl-database.js',
+  '/hubs/bkk/bkk-database.js',
+  '/hubs/dmk/dmk-database.js',
   // Add any additional hub JSON or script files here (e.g. '/scripts/audit-db.js')
 
   // Logo & Image Assets
