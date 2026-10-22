@@ -1,10 +1,15 @@
-const CACHE_NAME = 'whichterminal-v5';
+const CACHE_NAME = 'whichterminal-v6';
 const ASSETS_TO_CACHE = [
   '/',
   '/index.html',
   '/style.css',
   '/connection-calculator.js',
   '/manifest.json',
+
+  //hub pages
+  '/hubs/mnl/index.html',
+  '/hubs/bkk/index.html',
+  '/hubs/dmk/index.html',
   
   // Hub Data Files
   '/hubs/mnl/mnl-database.js',
