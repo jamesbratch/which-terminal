@@ -1,4 +1,4 @@
-const CACHE_NAME = 'whichterminal-v3';
+const CACHE_NAME = 'whichterminal-v4';
 const ASSETS_TO_CACHE = [
   '/',
   '/index.html',
@@ -7,14 +7,14 @@ const ASSETS_TO_CACHE = [
   '/manifest.json',
   
   // Hub Data Files
-  '/hubs/mnl.json',
-  '/hubs/sin.json',
-  '/hubs/bkk.json',
+  '/hubs/mnl/mnl.html',
+  '/hubs/bkk/bkk.html',
+  '/hubs/dmk/dmk.html',
   // Add any additional hub JSON or script files here (e.g. '/scripts/audit-db.js')
 
   // Logo & Image Assets
-  '/assets/logo.png', // Replace with your exact logo filename from /assets/
-  '/assets/favicon.ico'
+  '/assets/logo.png', 
+  '/assets/favicon.png'
 ];
 
 // Install Event: Cache Core Assets
