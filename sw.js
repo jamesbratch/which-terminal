@@ -1,4 +1,4 @@
-const CACHE_NAME = 'whichterminal-v6';
+const CACHE_NAME = 'whichterminal-v7';
 const ASSETS_TO_CACHE = [
   '/',
   '/index.html',
@@ -7,9 +7,9 @@ const ASSETS_TO_CACHE = [
   '/manifest.json',
 
   //hub pages
-  '/hubs/mnl/index.html',
-  '/hubs/bkk/index.html',
-  '/hubs/dmk/index.html',
+  '/hubs/mnl/mnl.html',
+  '/hubs/bkk/bkk.html',
+  '/hubs/dmk/dmk.html',
   
   // Hub Data Files
   '/hubs/mnl/mnl-database.js',
