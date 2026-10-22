@@ -1,4 +1,4 @@
-const CACHE_NAME = 'whichterminal-v9';
+const CACHE_NAME = 'whichterminal-v10';
 const ASSETS_TO_CACHE = [
   '/',
   '/index.html',
@@ -15,7 +15,7 @@ const ASSETS_TO_CACHE = [
   '/assets/favicon.png'
 ];
 
-// Safe Install Event: Caches files individually so one missing file won't break the whole app
+// Safe Install: Cache assets individually so missing files won't break registration
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then(async (cache) => {
@@ -23,7 +23,7 @@ self.addEventListener('install', (event) => {
         try {
           await cache.add(asset);
         } catch (err) {
-          console.warn('Skipping failed asset cache:', asset, err);
+          console.warn('Could not cache asset:', asset, err);
         }
       }
     })
@@ -31,7 +31,7 @@ self.addEventListener('install', (event) => {
   self.skipWaiting();
 });
 
-// Activate Event: Clean Old Caches
+// Activate: Delete old cache versions
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys().then((keys) => {
@@ -47,21 +47,32 @@ self.addEventListener('activate', (event) => {
   self.clients.claim();
 });
 
-// Fetch Event: Serve from Cache First, Fallback to Network
+// Robust Fetch Handler: Network-first for fresh updates, fallback to cache offline
 self.addEventListener('fetch', (event) => {
-  let request = event.request;
-  
-  if (request.url.endsWith('/')) {
-    request = new Request(new URL('./index.html', request.url));
-  }
+  // Only handle GET requests
+  if (event.request.method !== 'GET') return;
 
   event.respondWith(
-    caches.match(request).then((cachedResponse) => {
-      return cachedResponse || fetch(event.request).catch(() => {
-        if (event.request.mode === 'navigate') {
-          return caches.match('/index.html');
+    fetch(event.request)
+      .then((networkResponse) => {
+        // Clone and store valid responses into cache
+        if (networkResponse && networkResponse.status === 200) {
+          const responseToCache = networkResponse.clone();
+          caches.open(CACHE_NAME).then((cache) => {
+            cache.put(event.request, responseToCache);
+          });
         }
-      });
-    })
+        return networkResponse;
+      })
+      .catch(async () => {
+        // Offline Fallback: Try exact cache match first
+        const cachedResponse = await caches.match(event.request);
+        if (cachedResponse) return cachedResponse;
+
+        // Fallback for navigation requests to root/index.html
+        if (event.request.mode === 'navigate') {
+          return (await caches.match('/index.html')) || (await caches.match('/'));
+        }
+      })
   );
 });
