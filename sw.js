@@ -1,6 +1,5 @@
-const CACHE_NAME = 'whichterminal-v13';
+const CACHE_NAME = 'whichterminal-v14';
 
-// All core shell assets + hub directory pages & database scripts
 const ASSETS_TO_CACHE = [
   '/',
   '/index.html',
@@ -23,15 +22,21 @@ const ASSETS_TO_CACHE = [
   '/assets/favicon.png'
 ];
 
-// Safe Install Event: Caches all hub assets individually on initial install
+// Resilient Install: Fetches each resource safely and caches all valid 200 OK responses
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then(async (cache) => {
-      for (const asset of ASSETS_TO_CACHE) {
+      for (const url of ASSETS_TO_CACHE) {
         try {
-          await cache.add(asset);
+          const response = await fetch(url, { cache: 'reload' });
+          if (response.ok) {
+            await cache.put(url, response);
+            console.log(`[SW] Successfully cached: ${url}`);
+          } else {
+            console.warn(`[SW] Could not cache ${url} (Status: ${response.status})`);
+          }
         } catch (err) {
-          console.warn('Skipped caching asset:', asset, err);
+          console.warn(`[SW] Failed to fetch ${url}:`, err);
         }
       }
     })
@@ -39,7 +44,7 @@ self.addEventListener('install', (event) => {
   self.skipWaiting();
 });
 
-// Activate Event: Clear old cache versions
+// Activate: Purge older cache versions
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys().then((keys) => {
@@ -55,7 +60,7 @@ self.addEventListener('activate', (event) => {
   self.clients.claim();
 });
 
-// Fetch Handler: Cache-First for instant offline availability, falling back to network
+// Fetch Handler: Cache-First, fallback to network
 self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') return;
 
@@ -76,7 +81,6 @@ self.addEventListener('fetch', (event) => {
           return networkResponse;
         })
         .catch(async () => {
-          // Fallback for root navigation requests
           if (event.request.mode === 'navigate') {
             return (await caches.match('/index.html')) || (await caches.match('/'));
           }
