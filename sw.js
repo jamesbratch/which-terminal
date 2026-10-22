@@ -1,3 +1,71 @@
+const CACHE_NAME = 'whichterminal-v12';
+
+// Only pre-cache the lightweight core app shell
+const CORE_ASSETS = [
+  '/',
+  '/index.html',
+  '/style.css',
+  '/connection-calculator.js',
+  '/manifest.json',
+  '/assets/logo.png',
+  '/assets/favicon.png'
+];
+
+// Install: Cache core shell only (no database files touched)
+self.addEventListener('install', (event) => {
+  event.waitUntil(
+    caches.open(CACHE_NAME).then((cache) => {
+      return cache.addAll(CORE_ASSETS);
+    })
+  );
+  self.skipWaiting();
+});
+
+// Activate: Clean old caches
+self.addEventListener('activate', (event) => {
+  event.waitUntil(
+    caches.keys().then((keys) => {
+      return Promise.all(
+        keys.map((key) => {
+          if (key !== CACHE_NAME) {
+            return caches.delete(key);
+          }
+        })
+      );
+    })
+  );
+  self.clients.claim();
+});
+
+// Runtime Fetch Handler: Automatically caches hub pages & databases as they are loaded
+self.addEventListener('fetch', (event) => {
+  if (event.request.method !== 'GET') return;
+
+  event.respondWith(
+    fetch(event.request)
+      .then((networkResponse) => {
+        if (networkResponse && networkResponse.status === 200) {
+          const responseToCache = networkResponse.clone();
+          caches.open(CACHE_NAME).then((cache) => {
+            cache.put(event.request, responseToCache);
+          });
+        }
+        return networkResponse;
+      })
+      .catch(async () => {
+        const cachedResponse = await caches.match(event.request);
+        if (cachedResponse) return cachedResponse;
+
+        if (event.request.mode === 'navigate') {
+          return (await caches.match('/index.html')) || (await caches.match('/'));
+        }
+      })
+  );
+});
+
+
+
+/*
 const CACHE_NAME = 'whichterminal-v11';
 const ASSETS_TO_CACHE = [
   '/',
@@ -73,3 +141,4 @@ self.addEventListener('fetch', (event) => {
       })
   );
 });
+*/
