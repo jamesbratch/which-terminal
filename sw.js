@@ -1,10 +1,20 @@
-const CACHE_NAME = 'whichterminal-v2'; // Bump version to v2 so it forces an update
+const CACHE_NAME = 'whichterminal-v3';
 const ASSETS_TO_CACHE = [
   '/',
   '/index.html',
-  '/style.css',               // <-- Added your stylesheet
+  '/style.css',
   '/connection-calculator.js',
-  '/manifest.json'
+  '/manifest.json',
+  
+  // Hub Data Files
+  '/hubs/mnl.json',
+  '/hubs/sin.json',
+  '/hubs/bkk.json',
+  // Add any additional hub JSON or script files here (e.g. '/scripts/audit-db.js')
+
+  // Logo & Image Assets
+  '/assets/logo.png', // Replace with your exact logo filename from /assets/
+  '/assets/favicon.ico'
 ];
 
 // Install Event: Cache Core Assets
