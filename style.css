@@ -436,7 +436,7 @@ body {
   min-height: 400px;
 }
 
-/* Container styling to wrap the iframe cleanly */
+/* Container wrapper to match your site's card design */
 .avionio-widget-wrapper {
   background: #0f172a;
   border: 1px solid #1e293b;
@@ -445,10 +445,28 @@ body {
   overflow: hidden;
 }
 
-/* Forces light-themed iframes into a sleek dark-mode palette */
+/* Fine-tuned dark mode filter for natural contrast and true dark tones */
 .avionio-widget-wrapper iframe {
   width: 100%;
   border-radius: 8px;
-  /* Dark mode invert filter */
-  filter: invert(0.92) hue-rotate(180deg) contrast(1.1);
+  background-color: #0f172a;
+  filter: invert(1) hue-rotate(180deg) brightness(0.9) contrast(1.25);
+}
+
+/* Styled footer links to match your theme */
+.avionio-widget-footer {
+  font-size: 12px;
+  width: 100%;
+  text-align: center;
+  margin-top: 12px;
+}
+
+.avionio-widget-footer a {
+  text-decoration: none;
+  color: #94a3b8;
+  transition: color 0.2s ease;
+}
+
+.avionio-widget-footer a:hover {
+  color: #38bdf8;
 }
