@@ -28,17 +28,17 @@
 
   <!-- Sticky Mobile Nav Header -->
   <header class="site-header">
-  <div class="header-container">
-    <a href="../../index.html" class="brand-logo">
-      <img src="../../assets/logo.png" alt="WhichTerminal Logo" class="logo-img" width="180" height="40">
-    </a>
-  </div>
-</header>
+    <div class="header-container">
+      <a href="../../index.html" class="brand-logo">
+        <img src="../../assets/logo.png" alt="WhichTerminal Logo" class="logo-img" width="180" height="40">
+      </a>
+    </div>
+  </header>
 
   <div class="page-wrapper">
-    <!-- Header -->
+    <!-- Hero Header -->
     <header class="hero-header">
-      <h1>Don Mueang Airport (DMK)</h1>
+      <h1>Don Mueang Airport Terminal Finder (DMK)</h1>
       <p class="hero-subtext">Verified airline terminal mappings for Bangkok Don Mueang International Airport.</p>
       
       <div class="verified-meta">
@@ -46,37 +46,46 @@
       </div>
     </header>
 
-    <!-- Toolbar: Search + Touch Filter Pills -->
-    <section class="toolbar">
+    <!-- 1. Hero / Search Bar -->
+    <section class="search-section">
       <div class="search-field">
         <span class="search-icon">🔍</span>
         <input type="text" id="airlineSearch" placeholder="Search airline or flight code (e.g. AirAsia, FD, Nok Air)..." autocomplete="off">
       </div>
+      <!-- Instant Search Result Container -->
+      <div id="instantCard" class="instant-result-card"></div>
+    </section>
 
-      <div class="filter-scroll">
-        <button class="filter-pill active" data-filter="all">All Terminals</button>
-        <button class="filter-pill" data-filter="Terminal 1">Terminal 1 (Intl)</button>
-        <button class="filter-pill" data-filter="Terminal 2">Terminal 2 (Dom)</button>
+    <!-- 2. Live Operations Board -->
+    <section class="live-board-section">
+      <div class="section-header">
+        <h2>Live Airport Operations</h2>
+        <p>Real-time arrivals and departures tracking for Bangkok Don Mueang</p>
+      </div>
+
+      <div class="avionio-widget-wrapper">
+        <iframe src="https://www.avionio.com/widget/en/dmk/departures?style=1" height="600px" frameborder="0"></iframe>
+        <div class="avionio-widget-footer">
+          <a href="https://www.avionio.com/en/airport/dmk/departures" target="_blank">DMK • Live Departures Board</a>
+          <span style="color: #334155;"> • </span>
+          <a href="https://www.avionio.com/en" target="_blank">Powered by Avionio.com</a>
+        </div>
       </div>
     </section>
 
-    <!-- Instant Search Highlighting Result -->
-    <div id="instantCard" class="instant-result-card">
-      <div style="display: flex; justify-content: space-between; align-items: flex-start;">
-        <div>
-          <div id="instantAirline" class="instant-title">Thai AirAsia</div>
-          <div id="instantTerminal" class="instant-terminal">Terminal 2</div>
+    <!-- 3. Directory Card List & Filter Pills -->
+    <section class="directory-section">
+      <div class="directory-header">
+        <div class="section-title">
+          <h2>Airlines Index</h2>
+          <span id="matchCount" class="match-badge">0</span>
         </div>
-        <span id="instantCode" class="iata-code">FD</span>
-      </div>
-      <p id="instantNotes" class="instant-notes"></p>
-    </div>
 
-    <!-- Directory Card List -->
-    <section>
-      <div class="section-title">
-        <span>Airlines Index</span>
-        <span id="matchCount" style="color: var(--accent-blue);">0</span>
+        <div class="filter-scroll">
+          <button class="filter-pill active" data-filter="all">All Terminals</button>
+          <button class="filter-pill" data-filter="Terminal 1">Terminal 1 (Intl)</button>
+          <button class="filter-pill" data-filter="Terminal 2">Terminal 2 (Dom)</button>
+        </div>
       </div>
 
       <div id="airlineList" class="airline-list">
@@ -84,7 +93,7 @@
       </div>
     </section>
 
-    <!-- Transfer Logistics Guide -->
+    <!-- 4. Transfer Logistics Guide -->
     <section class="guide-box">
       <h2>DMK Airport & Transfer Logistics</h2>
       
@@ -115,6 +124,7 @@
       </div>
     </footer>
   </div>
-<script src="dmk-database.js"></script>
+
+  <script src="dmk-database.js"></script>
 </body>
 </html>
