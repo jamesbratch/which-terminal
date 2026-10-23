@@ -201,3 +201,16 @@ if ('serviceWorker' in navigator) {
       .catch(err => console.error('SW Registration Failed:', err));
   });
 }
+
+// Network status check
+function checkNetworkStatus() {
+  if (navigator.onLine) {
+    document.body.classList.remove('is-offline');
+  } else {
+    document.body.classList.add('is-offline');
+  }
+}
+
+window.addEventListener('online', checkNetworkStatus);
+window.addEventListener('offline', checkNetworkStatus);
+document.addEventListener('DOMContentLoaded', checkNetworkStatus);
