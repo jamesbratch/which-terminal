@@ -435,18 +435,19 @@ body {
 
 /* Clean Frame Container - No clashing filters */
 .avionio-widget-wrapper {
-  background: #0b1120;
+  background: #0f172a;
   border: 1px solid #1e293b;
-  border-radius: 12px;
-  overflow: hidden;
-  padding: 12px;
+  border-radius: 16px;
+  padding: 24px;
 }
 
 .avionio-widget-wrapper iframe {
   width: 100%;
-  border-radius: 8px;
+  border-radius: 12px;
   border: none;
-  /* Using Avionio's native dark styling without harsh inversion filters */
+  /* Inverts the white iframe background to dark, and fine-tunes contrast */
+  filter: invert(1) hue-rotate(180deg) brightness(0.95) contrast(1.1);
+  background-color: #0f172a;
 }
 
 .avionio-widget-footer {
