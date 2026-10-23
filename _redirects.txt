@@ -1,13 +1,4 @@
-# Map /home to root homepage
-/home                /                      301
-
-# Map clean airport routes to the underlying hub files
+/home                /index.html            200
 /mnl                 /hubs/mnl/mnl.html     200
 /bkk                 /hubs/bkk/bkk.html     200
 /dmk                 /hubs/dmk/dmk.html     200
-
-# Force old .html paths to redirect cleanly to short URLs
-/hubs/mnl/mnl.html   /mnl                   301
-/hubs/bkk/bkk.html   /bkk                   301
-/hubs/dmk/dmk.html   /dmk                   301
-/index.html          /                      301
