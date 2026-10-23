@@ -1,11 +1,4 @@
 /home                /index.html            200
-/home/               /index.html            200
-
-/mnl                 /hubs/mnl/mnl.html     200
-/mnl/                /hubs/mnl/mnl.html     200
-
-/bkk                 /hubs/bkk/bkk.html     200
-/bkk/                /hubs/bkk/bkk.html     200
-
-/dmk                 /hubs/dmk/dmk.html     200
-/dmk/                /hubs/dmk/dmk.html     200
+/mnl                 /hubs/mnl/mnl.html     301
+/bkk                 /hubs/bkk/bkk.html     301
+/dmk                 /hubs/dmk/dmk.html     301
