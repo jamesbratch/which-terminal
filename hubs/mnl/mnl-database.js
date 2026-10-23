@@ -139,39 +139,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-/*
-  if (searchInput) {
-    searchInput.addEventListener('input', (e) => {
-      const query = e.target.value.toLowerCase().trim();
-      
-      if (query.length >= 2) {
-        const match = naiaDatabase.find(a => 
-          a.name.toLowerCase().includes(query) || a.code.toLowerCase().includes(query)
-        );
-
-        if (match && instantCard) {
-          if (instantAirline) instantAirline.textContent = match.name;
-          if (instantTerminal) instantTerminal.textContent = match.terminal;
-          if (instantNotes) instantNotes.textContent = match.notes;
-          if (instantCode) instantCode.textContent = match.code;
-          instantCard.classList.add('active');
-        } else if (instantCard) {
-          instantCard.classList.remove('active');
-        }
-      } else if (instantCard) {
-        instantCard.classList.remove('active');
-      }
-
-      const filtered = naiaDatabase.filter(item => {
-        const matchesQuery = item.name.toLowerCase().includes(query) || item.code.toLowerCase().includes(query);
-        const matchesFilter = currentFilter === 'all' || item.terminal === currentFilter;
-        return matchesQuery && matchesFilter;
-      });
-      renderCards(filtered);
-    });
-  }
-  */
-
   filterPills.forEach(pill => {
     pill.addEventListener('click', () => {
       filterPills.forEach(p => p.classList.remove('active'));

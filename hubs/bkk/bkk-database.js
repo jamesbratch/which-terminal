@@ -119,6 +119,58 @@ document.addEventListener('DOMContentLoaded', () => {
 
   renderCards(bkkDatabase);
 
+if (searchInput) {
+    searchInput.addEventListener('input', (e) => {
+      const query = e.target.value.toLowerCase().trim();
+      
+      if (query.length >= 2) {
+        // Find ALL matching records instead of just the first one
+        const matches = naiaDatabase.filter(a => 
+          a.name.toLowerCase().includes(query) || a.code.toLowerCase().includes(query)
+        );
+
+        if (matches.length > 0 && instantCard) {
+          // Render all matching cards inside the instant container
+          instantCard.innerHTML = matches.map(match => `
+            <div class="instant-result-item" style="margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid #334155;">
+              <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                <div>
+                  <div class="instant-title" style="font-weight: 600; color: #f8fafc;">${match.name}</div>
+                  <div class="instant-terminal" style="color: #38bdf8; font-weight: 500; margin-top: 2px;">${match.terminal}</div>
+                </div>
+                <span class="iata-code" style="background: #1e293b; padding: 2px 8px; border-radius: 4px; font-size: 0.85rem; color: #94a3b8;">${match.code}</span>
+              </div>
+              <p class="instant-notes" style="color: #94a3b8; font-size: 0.875rem; margin-top: 6px; margin-bottom: 0;">${match.notes}</p>
+            </div>
+          `).join('');
+          
+          // Remove bottom border from the last item
+          const items = instantCard.querySelectorAll('.instant-result-item');
+          if (items.length > 0) {
+            items[items.length - 1].style.borderBottom = 'none';
+            items[items.length - 1].style.marginBottom = '0';
+            items[items.length - 1].style.paddingBottom = '0';
+          }
+
+          instantCard.classList.add('active');
+        } else if (instantCard) {
+          instantCard.classList.remove('active');
+        }
+      } else if (instantCard) {
+        instantCard.classList.remove('active');
+      }
+
+      // Also filter the main airlines index list below
+      const filtered = naiaDatabase.filter(item => {
+        const matchesQuery = item.name.toLowerCase().includes(query) || item.code.toLowerCase().includes(query);
+        const matchesFilter = currentFilter === 'all' || item.terminal === currentFilter;
+        return matchesQuery && matchesFilter;
+      });
+      renderCards(filtered);
+    });
+  }
+
+  /*
   if (searchInput) {
     searchInput.addEventListener('input', (e) => {
       const query = e.target.value.toLowerCase().trim();
@@ -149,6 +201,7 @@ document.addEventListener('DOMContentLoaded', () => {
       renderCards(filtered);
     });
   }
+  */
 
   filterPills.forEach(pill => {
     pill.addEventListener('click', () => {

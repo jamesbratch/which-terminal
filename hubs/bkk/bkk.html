@@ -28,17 +28,17 @@
 
   <!-- Sticky Mobile Nav Header -->
   <header class="site-header">
-  <div class="header-container">
-    <a href="../../index.html" class="brand-logo">
-      <img src="../../assets/logo.png" alt="WhichTerminal Logo" class="logo-img" width="180" height="40">
-    </a>
-  </div>
-</header>
+    <div class="header-container">
+      <a href="../../index.html" class="brand-logo">
+        <img src="../../assets/logo.png" alt="WhichTerminal Logo" class="logo-img" width="180" height="40">
+      </a>
+    </div>
+  </header>
 
   <div class="page-wrapper">
     <!-- Header -->
     <header class="hero-header">
-      <h1>Suvarnabhumi Airport (BKK)</h1>
+      <h1>Bangkok Suvarnabhumi Terminal Finder (BKK)</h1>
       <p class="hero-subtext">Verified airline terminal & SAT-1 satellite mappings for Bangkok Suvarnabhumi.</p>
       
       <div class="verified-meta">
@@ -46,37 +46,45 @@
       </div>
     </header>
 
-    <!-- Toolbar: Search + Touch Filter Pills -->
-    <section class="toolbar">
+    <!-- 1. Search Bar & Instant Card -->
+    <section class="search-section">
       <div class="search-field">
         <span class="search-icon">🔍</span>
-        <input type="text" id="airlineSearch" placeholder="Search airline or code (e.g. Thai Airways, TG, Emirates)..." autocomplete="off">
+        <input type="text" id="airlineSearch" placeholder="Search airline or flight code (e.g. Thai, TG, EK)..." autocomplete="off">
+      </div>
+      <div id="instantCard" class="instant-result-card"></div>
+    </section>
+
+    <!-- 2. Live Operations Board -->
+    <section class="live-board-section">
+      <div class="section-header">
+        <h2>Live Airport Operations</h2>
+        <p>Real-time arrivals and departures tracking for Bangkok Suvarnabhumi</p>
       </div>
 
-      <div class="filter-scroll">
-        <button class="filter-pill active" data-filter="all">All Terminals</button>
-        <button class="filter-pill" data-filter="Main Terminal">Main Terminal</button>
-        <button class="filter-pill" data-filter="SAT-1 Concourse">SAT-1 Concourse</button>
+      <div class="avionio-widget-wrapper">
+        <iframe src="https://www.avionio.com/widget/en/bkk/departures?style=1" height="600px" frameborder="0"></iframe>
+        <div class="avionio-widget-footer">
+          <a href="https://www.avionio.com/en/airport/bkk/departures" target="_blank">BKK • Live Departures Board</a>
+          <span style="color: #334155;"> • </span>
+          <a href="https://www.avionio.com/en" target="_blank">Powered by Avionio.com</a>
+        </div>
       </div>
     </section>
 
-    <!-- Instant Search Highlighting Result -->
-    <div id="instantCard" class="instant-result-card">
-      <div style="display: flex; justify-content: space-between; align-items: flex-start;">
-        <div>
-          <div id="instantAirline" class="instant-title">Thai Airways</div>
-          <div id="instantTerminal" class="instant-terminal">Main Terminal</div>
+    <!-- 3. Directory Card List & Filter Pills -->
+    <section class="directory-section">
+      <div class="directory-header">
+        <div class="section-title">
+          <h2>Airlines Index</h2>
+          <span id="matchCount" class="match-badge">0</span>
         </div>
-        <span id="instantCode" class="iata-code">TG</span>
-      </div>
-      <p id="instantNotes" class="instant-notes"></p>
-    </div>
 
-    <!-- Directory Card List -->
-    <section>
-      <div class="section-title">
-        <span>Airlines Index</span>
-        <span id="matchCount" style="color: var(--accent-blue);">0</span>
+        <div class="filter-scroll">
+          <button class="filter-pill active" data-filter="all">All Terminals</button>
+          <button class="filter-pill" data-filter="Main Terminal">Main Terminal</button>
+          <button class="filter-pill" data-filter="SAT-1 Concourse">SAT-1 Concourse</button>
+        </div>
       </div>
 
       <div id="airlineList" class="airline-list">
@@ -84,7 +92,7 @@
       </div>
     </section>
 
-    <!-- Transfer Logistics Guide -->
+    <!-- 4. Transfer Logistics Guide -->
     <section class="guide-box">
       <h2>Suvarnabhumi (BKK) Gate & Transfer Logistics</h2>
       
@@ -119,6 +127,7 @@
       </div>
     </footer>
   </div>
-<script src="bkk-database.js"></script>
+
+  <script src="bkk-database.js"></script>
 </body>
 </html>
