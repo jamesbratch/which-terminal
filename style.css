@@ -408,55 +408,49 @@ body {
 
 /* Live Board Section */
 
+/* Live Board Section Wrapper */
 .live-board-section {
   margin-top: 40px;
-  padding: 24px;
   background: #0f172a;
   border: 1px solid #1e293b;
   border-radius: 16px;
+  padding: 24px;
+}
+
+.section-header {
+  margin-bottom: 20px;
 }
 
 .section-header h2 {
   color: #f8fafc;
   font-size: 1.25rem;
+  font-weight: 600;
   margin-bottom: 4px;
 }
 
 .section-header p {
   color: #94a3b8;
   font-size: 0.875rem;
-  margin-bottom: 16px;
 }
 
-.widget-container {
-  width: 100%;
-  overflow-x: auto;
-  border-radius: 8px;
-  background: #1e293b;
-  min-height: 400px;
-}
-
-/* Container matching your exact site theme */
+/* Clean Frame Container - No clashing filters */
 .avionio-widget-wrapper {
-  background: #0f172a;
+  background: #0b1120;
   border: 1px solid #1e293b;
-  border-radius: 16px;
-  padding: 16px;
+  border-radius: 12px;
   overflow: hidden;
+  padding: 12px;
 }
 
-/* Tuned filter to match the #0f172a slate tone and keep inactive text visible */
 .avionio-widget-wrapper iframe {
   width: 100%;
   border-radius: 8px;
-  background-color: #0f172a;
-  /* Lifts pitch black to slate blue, boosts midtones so 'Arrivals' isn't hidden */
-  filter: invert(0.88) hue-rotate(195deg) saturate(1.8) brightness(1.25) contrast(1.1);
+  border: none;
+  /* Using Avionio's native dark styling without harsh inversion filters */
 }
 
-/* Footer links styling */
 .avionio-widget-footer {
-  font-size: 12px;
+  font-size: 0.75rem;
   width: 100%;
   text-align: center;
   margin-top: 12px;
@@ -464,7 +458,7 @@ body {
 
 .avionio-widget-footer a {
   text-decoration: none;
-  color: #94a3b8;
+  color: #64748b;
   transition: color 0.2s ease;
 }
 
