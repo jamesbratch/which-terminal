@@ -435,3 +435,20 @@ body {
   background: #1e293b;
   min-height: 400px;
 }
+
+/* Container styling to wrap the iframe cleanly */
+.avionio-widget-wrapper {
+  background: #0f172a;
+  border: 1px solid #1e293b;
+  border-radius: 16px;
+  padding: 16px;
+  overflow: hidden;
+}
+
+/* Forces light-themed iframes into a sleek dark-mode palette */
+.avionio-widget-wrapper iframe {
+  width: 100%;
+  border-radius: 8px;
+  /* Dark mode invert filter */
+  filter: invert(0.92) hue-rotate(180deg) contrast(1.1);
+}
