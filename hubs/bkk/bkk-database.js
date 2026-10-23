@@ -2,7 +2,8 @@ const bkkDatabase = [
   // Home Hub Carriers & Thailand Mainline
   { name: "Thai Airways", code: "TG", terminal: "Main Terminal", tag: "t1", notes: "Flag carrier; check-in Rows H/J." },
   { name: "Bangkok Airways", code: "PG", terminal: "Main Terminal", tag: "t1", notes: "Boutique domestic & regional; check-in Row F." },
-  { name: "Thai VietJet Air", code: "VZ", terminal: "Main Terminal / SAT-1", tag: "t1", notes: "Domestic in Main Terminal; Intl departures at SAT-1." },
+  { name: "Thai VietJet Air (Domestic)", code: "VZ", terminal: "Main Terminal", tag: "t1", notes: "Domestic flights depart from Main Terminal." },
+  { name: "Thai VietJet Air (International)", code: "VZ", terminal: "SAT-1 Concourse", tag: "t3", notes: "International departures at SAT-1 concourse." },
   { name: "Thai AirAsia X", code: "XJ", terminal: "SAT-1 Concourse", tag: "t3", notes: "Intl budget long-haul (Check-in Main Terminal Row N)." },
 
   // SAT-1 Satellite Concourse Primary Carriers
@@ -84,22 +85,16 @@ const bkkDatabase = [
   { name: "Jetstar Airways", code: "JQ", terminal: "Main Terminal", tag: "t1", notes: "Melbourne & Perth direct." }
 ];
 
-// Expose database array globally
 window.bkkDatabase = bkkDatabase;
 
-// Wrapped UI Execution (Safely ignored on index.html)
 document.addEventListener('DOMContentLoaded', () => {
   const airlineList = document.getElementById('airlineList');
   const searchInput = document.getElementById('airlineSearch');
   const instantCard = document.getElementById('instantCard');
-  const instantAirline = document.getElementById('instantAirline');
-  const instantTerminal = document.getElementById('instantTerminal');
-  const instantNotes = document.getElementById('instantNotes');
-  const instantCode = document.getElementById('instantCode');
   const matchCount = document.getElementById('matchCount');
   const filterPills = document.querySelectorAll('.filter-pill');
 
-  if (!airlineList) return; // Exit cleanly if running on index.html
+  if (!airlineList) return;
 
   let currentFilter = 'all';
 
@@ -119,18 +114,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
   renderCards(bkkDatabase);
 
-if (searchInput) {
+  if (searchInput) {
     searchInput.addEventListener('input', (e) => {
       const query = e.target.value.toLowerCase().trim();
       
       if (query.length >= 2) {
-        // Find ALL matching records instead of just the first one
-        const matches = naiaDatabase.filter(a => 
+        // Query bkkDatabase correctly
+        const matches = bkkDatabase.filter(a => 
           a.name.toLowerCase().includes(query) || a.code.toLowerCase().includes(query)
         );
 
         if (matches.length > 0 && instantCard) {
-          // Render all matching cards inside the instant container
           instantCard.innerHTML = matches.map(match => `
             <div class="instant-result-item" style="margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid #334155;">
               <div style="display: flex; justify-content: space-between; align-items: flex-start;">
@@ -144,7 +138,6 @@ if (searchInput) {
             </div>
           `).join('');
           
-          // Remove bottom border from the last item
           const items = instantCard.querySelectorAll('.instant-result-item');
           if (items.length > 0) {
             items[items.length - 1].style.borderBottom = 'none';
@@ -160,39 +153,7 @@ if (searchInput) {
         instantCard.classList.remove('active');
       }
 
-      // Also filter the main airlines index list below
-      const filtered = naiaDatabase.filter(item => {
-        const matchesQuery = item.name.toLowerCase().includes(query) || item.code.toLowerCase().includes(query);
-        const matchesFilter = currentFilter === 'all' || item.terminal === currentFilter;
-        return matchesQuery && matchesFilter;
-      });
-      renderCards(filtered);
-    });
-  }
-
-  /*
-  if (searchInput) {
-    searchInput.addEventListener('input', (e) => {
-      const query = e.target.value.toLowerCase().trim();
-      
-      if (query.length >= 2) {
-        const match = bkkDatabase.find(a => 
-          a.name.toLowerCase().includes(query) || a.code.toLowerCase().includes(query)
-        );
-
-        if (match && instantCard) {
-          if (instantAirline) instantAirline.textContent = match.name;
-          if (instantTerminal) instantTerminal.textContent = match.terminal;
-          if (instantNotes) instantNotes.textContent = match.notes;
-          if (instantCode) instantCode.textContent = match.code;
-          instantCard.classList.add('active');
-        } else if (instantCard) {
-          instantCard.classList.remove('active');
-        }
-      } else if (instantCard) {
-        instantCard.classList.remove('active');
-      }
-
+      // Filter main directory list
       const filtered = bkkDatabase.filter(item => {
         const matchesQuery = item.name.toLowerCase().includes(query) || item.code.toLowerCase().includes(query);
         const matchesFilter = currentFilter === 'all' || item.terminal === currentFilter;
@@ -201,7 +162,6 @@ if (searchInput) {
       renderCards(filtered);
     });
   }
-  */
 
   filterPills.forEach(pill => {
     pill.addEventListener('click', () => {
