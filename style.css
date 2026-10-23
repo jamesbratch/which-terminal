@@ -436,7 +436,7 @@ body {
   min-height: 400px;
 }
 
-/* Container wrapper to match your site's card design */
+/* Container matching your exact site theme */
 .avionio-widget-wrapper {
   background: #0f172a;
   border: 1px solid #1e293b;
@@ -445,15 +445,16 @@ body {
   overflow: hidden;
 }
 
-/* Fine-tuned dark mode filter for natural contrast and true dark tones */
+/* Tuned filter to match the #0f172a slate tone and keep inactive text visible */
 .avionio-widget-wrapper iframe {
   width: 100%;
   border-radius: 8px;
   background-color: #0f172a;
-  filter: invert(0.92) hue-rotate(180deg) contrast(1.15) brightness(1.1);
+  /* Lifts pitch black to slate blue, boosts midtones so 'Arrivals' isn't hidden */
+  filter: invert(0.88) hue-rotate(195deg) saturate(1.8) brightness(1.25) contrast(1.1);
 }
 
-/* Styled footer links to match your theme */
+/* Footer links styling */
 .avionio-widget-footer {
   font-size: 12px;
   width: 100%;
