@@ -466,3 +466,14 @@ body {
 .avionio-widget-footer a:hover {
   color: #38bdf8;
 }
+
+/* Add breathing room between the live board and the flight lookup bar */
+.live-board-section {
+  margin-bottom: 32px; /* Creates space if the board is placed above */
+}
+
+/* OR if the board is below the search bar: */
+.search-container, /* target your search bar wrapper class */
+.filter-bar {
+  margin-top: 32px;
+}
