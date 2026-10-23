@@ -434,7 +434,7 @@ body {
   font-size: 0.875rem;
 }
 
-/* Clean Frame Container - No clashing filters */
+/* Clean Frame Container */
 .avionio-widget-wrapper {
   background: #0f172a;
   border: 1px solid #1e293b;
@@ -477,4 +477,34 @@ body {
 .search-container, /* target your search bar wrapper class */
 .filter-bar {
   margin-top: 32px;
+}
+
+/* Offline Placeholder */
+
+.offline-board-placeholder {
+  display: none;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: #1e293b;
+  border-radius: 12px;
+  border: 1px dashed #334155;
+  color: #94a3b8;
+  text-align: center;
+  padding: 40px 20px;
+  box-sizing: border-box;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+/* Shown automatically when offline */
+body.is-offline .avionio-widget-wrapper iframe {
+  display: none;
+}
+
+body.is-offline .offline-board-placeholder {
+  display: flex;
 }

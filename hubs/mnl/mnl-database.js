@@ -169,3 +169,16 @@ document.addEventListener('DOMContentLoaded', () => {
     searchInput.dispatchEvent(new Event('input'));
   }
 });
+
+// Monitor network connectivity state
+function updateOnlineStatus() {
+  if (navigator.onLine) {
+    document.body.classList.remove('is-offline');
+  } else {
+    document.body.classList.add('is-offline');
+  }
+}
+
+window.addEventListener('online', updateOnlineStatus);
+window.addEventListener('offline', updateOnlineStatus);
+document.addEventListener('DOMContentLoaded', updateOnlineStatus);
