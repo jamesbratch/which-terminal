@@ -179,6 +179,7 @@ body {
 .filter-scroll {
   display: flex;
   gap: 8px;
+  margin-bottom: 20px;
   overflow-x: auto;
   padding-bottom: 4px;
   -webkit-overflow-scrolling: touch;
