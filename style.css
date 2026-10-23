@@ -482,29 +482,26 @@ body {
 /* Offline Placeholder */
 
 .offline-board-placeholder {
-  display: none;
-  position: absolute;
-  top: 0;
-  left: 0;
+  display: none; /* Hidden by default */
   width: 100%;
-  height: 100%;
+  height: 400px; /* FIXED HEIGHT: prevents full-screen takeover */
   background: #1e293b;
   border-radius: 12px;
   border: 1px dashed #334155;
   color: #94a3b8;
   text-align: center;
-  padding: 40px 20px;
+  padding: 30px 20px;
   box-sizing: border-box;
   flex-direction: column;
   justify-content: center;
   align-items: center;
 }
 
-/* Shown automatically when offline */
+/* Hide iframe ONLY when offline, and show fixed placeholder */
 body.is-offline .avionio-widget-wrapper iframe {
-  display: none;
+  display: none !important;
 }
 
 body.is-offline .offline-board-placeholder {
-  display: flex;
+  display: flex !important;
 }

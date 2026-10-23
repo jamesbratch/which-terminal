@@ -170,8 +170,8 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 });
 
-// Monitor network connectivity state
-function updateOnlineStatus() {
+// Network status check
+function checkNetworkStatus() {
   if (navigator.onLine) {
     document.body.classList.remove('is-offline');
   } else {
@@ -179,6 +179,6 @@ function updateOnlineStatus() {
   }
 }
 
-window.addEventListener('online', updateOnlineStatus);
-window.addEventListener('offline', updateOnlineStatus);
-document.addEventListener('DOMContentLoaded', updateOnlineStatus);
+window.addEventListener('online', checkNetworkStatus);
+window.addEventListener('offline', checkNetworkStatus);
+document.addEventListener('DOMContentLoaded', checkNetworkStatus);
