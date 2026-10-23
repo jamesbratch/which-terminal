@@ -405,3 +405,33 @@ body {
     padding: 32px 24px 60px;
   }
 }
+
+/* Live Board Section */
+
+.live-board-section {
+  margin-top: 40px;
+  padding: 24px;
+  background: #0f172a;
+  border: 1px solid #1e293b;
+  border-radius: 16px;
+}
+
+.section-header h2 {
+  color: #f8fafc;
+  font-size: 1.25rem;
+  margin-bottom: 4px;
+}
+
+.section-header p {
+  color: #94a3b8;
+  font-size: 0.875rem;
+  margin-bottom: 16px;
+}
+
+.widget-container {
+  width: 100%;
+  overflow-x: auto;
+  border-radius: 8px;
+  background: #1e293b;
+  min-height: 400px;
+}
