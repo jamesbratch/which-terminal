@@ -32,10 +32,6 @@ document.addEventListener('DOMContentLoaded', () => {
   const airlineList = document.getElementById('airlineList');
   const searchInput = document.getElementById('airlineSearch');
   const instantCard = document.getElementById('instantCard');
-  const instantAirline = document.getElementById('instantAirline');
-  const instantTerminal = document.getElementById('instantTerminal');
-  const instantNotes = document.getElementById('instantNotes');
-  const instantCode = document.getElementById('instantCode');
   const matchCount = document.getElementById('matchCount');
   const filterPills = document.querySelectorAll('.filter-pill');
 
@@ -64,15 +60,32 @@ document.addEventListener('DOMContentLoaded', () => {
       const query = e.target.value.toLowerCase().trim();
       
       if (query.length >= 2) {
-        const match = dmkDatabase.find(a => 
+        // Multi-match filter for split-terminal carriers
+        const matches = dmkDatabase.filter(a => 
           a.name.toLowerCase().includes(query) || a.code.toLowerCase().includes(query)
         );
 
-        if (match && instantCard) {
-          if (instantAirline) instantAirline.textContent = match.name;
-          if (instantTerminal) instantTerminal.textContent = match.terminal;
-          if (instantNotes) instantNotes.textContent = match.notes;
-          if (instantCode) instantCode.textContent = match.code;
+        if (matches.length > 0 && instantCard) {
+          instantCard.innerHTML = matches.map(match => `
+            <div class="instant-result-item" style="margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid #334155;">
+              <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                <div>
+                  <div class="instant-title" style="font-weight: 600; color: #f8fafc;">${match.name}</div>
+                  <div class="instant-terminal" style="color: #38bdf8; font-weight: 500; margin-top: 2px;">${match.terminal}</div>
+                </div>
+                <span class="iata-code" style="background: #1e293b; padding: 2px 8px; border-radius: 4px; font-size: 0.85rem; color: #94a3b8;">${match.code}</span>
+              </div>
+              <p class="instant-notes" style="color: #94a3b8; font-size: 0.875rem; margin-top: 6px; margin-bottom: 0;">${match.notes}</p>
+            </div>
+          `).join('');
+          
+          const items = instantCard.querySelectorAll('.instant-result-item');
+          if (items.length > 0) {
+            items[items.length - 1].style.borderBottom = 'none';
+            items[items.length - 1].style.marginBottom = '0';
+            items[items.length - 1].style.paddingBottom = '0';
+          }
+
           instantCard.classList.add('active');
         } else if (instantCard) {
           instantCard.classList.remove('active');
@@ -81,6 +94,7 @@ document.addEventListener('DOMContentLoaded', () => {
         instantCard.classList.remove('active');
       }
 
+      // Filter main directory list below
       const filtered = dmkDatabase.filter(item => {
         const matchesQuery = item.name.toLowerCase().includes(query) || item.code.toLowerCase().includes(query);
         const matchesFilter = currentFilter === 'all' || item.terminal === currentFilter;
@@ -124,7 +138,19 @@ document.addEventListener('DOMContentLoaded', () => {
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('/sw.js')
-      .then(reg => console.log('SW Registered:', reg.scope))
       .catch(err => console.error('SW Registration Failed:', err));
   });
 }
+
+// Network status check
+function checkNetworkStatus() {
+  if (navigator.onLine) {
+    document.body.classList.remove('is-offline');
+  } else {
+    document.body.classList.add('is-offline');
+  }
+}
+
+window.addEventListener('online', checkNetworkStatus);
+window.addEventListener('offline', checkNetworkStatus);
+document.addEventListener('DOMContentLoaded', checkNetworkStatus);

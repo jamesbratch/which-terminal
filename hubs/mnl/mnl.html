@@ -49,44 +49,62 @@
       </div>
     </header>
 
-    <!-- Toolbar: Search + Touch Filter Pills -->
-    <section class="toolbar">
-      <div class="search-field">
-        <span class="search-icon">🔍</span>
-        <input type="text" id="airlineSearch" placeholder="Search airline or flight code (e.g. Cebu, PAL, EK)..." autocomplete="off">
-      </div>
+ 
+    <!-- 1. Hero / Search Bar -->
+<section class="search-section">
+  <div class="search-field">
+    <span class="search-icon">🔍</span>
+    <input type="text" id="airlineSearch" placeholder="Search airline or flight code (e.g. Cebu, PAL, EK)..." autocomplete="off">
+  </div>
+  <!-- Search Result Card Wrapper -->
+<div id="instantCard" class="instant-result-card"></div>
+</section>
 
-      <div class="filter-scroll">
-        <button class="filter-pill active" data-filter="all">All Terminals</button>
-        <button class="filter-pill" data-filter="Terminal 1">Terminal 1</button>
-        <button class="filter-pill" data-filter="Terminal 2">Terminal 2</button>
-        <button class="filter-pill" data-filter="Terminal 3">Terminal 3</button>
-      </div>
-    </section>
+   <!-- 2. Live Operations Board (Prominent near top) -->
+<section class="live-board-section">
+  <div class="section-header">
+    <h2>Live Airport Operations</h2>
+    <p>Real-time arrivals and departures tracking for Manila Ninoy Aquino</p>
+  </div>
 
-    <!-- Instant Search Highlighting Result -->
-    <div id="instantCard" class="instant-result-card">
-      <div style="display: flex; justify-content: space-between; align-items: flex-start;">
-        <div>
-          <div id="instantAirline" class="instant-title">Cebu Pacific (5J)</div>
-          <div id="instantTerminal" class="instant-terminal">Terminal 3</div>
-        </div>
-        <span id="instantCode" class="iata-code">5J</span>
-      </div>
-      <p id="instantNotes" class="instant-notes"></p>
+  <div class="avionio-widget-wrapper">
+    <iframe src="https://www.avionio.com/widget/en/mnl/departures?style=1" height="600px" frameborder="0"></iframe>
+    <!-- Offline Fallback Display -->
+  <div class="offline-board-placeholder">
+    <span style="font-size: 2rem; margin-bottom: 8px;">📡</span>
+    <h3 style="color: #f8fafc; margin: 0 0 6px 0; font-size: 1.1rem;">Live Board Offline</h3>
+    <p style="color: #94a3b8; font-size: 0.85rem; margin: 0; max-width: 280px;">Real-time updates require an internet connection. Terminal directory below is available offline.</p>
+  </div>
+    <div class="avionio-widget-footer">
+      <a href="https://www.avionio.com/en/airport/mnl/departures" target="_blank">MNL • Live Departures Board</a>
+      <span style="color: #334155;"> • </span>
+      <a href="https://www.avionio.com/en" target="_blank">Powered by Avionio.com</a>
+    </div>
+  </div>
+</section>
+
+
+<!-- 3. Airlines Index Section (Pills paired directly with the index) -->
+<section class="directory-section">
+  <div class="directory-header">
+    <div class="section-title">
+      <h2>Airlines Index</h2>
+      <span id="matchCount" class="match-badge">45</span>
     </div>
 
-    <!-- Directory Card List -->
-    <section>
-      <div class="section-title">
-        <span>Airlines Index</span>
-        <span id="matchCount" style="color: var(--accent-blue);">30</span>
-      </div>
+    <!-- Filter Pills reside strictly inside the Airlines Index -->
+    <div class="filter-scroll">
+      <button class="filter-pill active" data-filter="all">All Terminals</button>
+      <button class="filter-pill" data-filter="Terminal 1">Terminal 1</button>
+      <button class="filter-pill" data-filter="Terminal 2">Terminal 2</button>
+      <button class="filter-pill" data-filter="Terminal 3">Terminal 3</button>
+    </div>
+  </div>
 
-      <div id="airlineList" class="airline-list">
-        <!-- Dynamically Populated via JS -->
-      </div>
-    </section>
+  <div id="airlineList" class="airline-list">
+    <!-- Dynamically Populated via JS -->
+  </div>
+</section>
 
     <!-- Mobile Transfer Guide -->
     <section class="guide-box">

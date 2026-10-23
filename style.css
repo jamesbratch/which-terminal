@@ -179,6 +179,7 @@ body {
 .filter-scroll {
   display: flex;
   gap: 8px;
+  margin-bottom: 20px;
   overflow-x: auto;
   padding-bottom: 4px;
   -webkit-overflow-scrolling: touch;
@@ -404,4 +405,103 @@ body {
   .page-wrapper {
     padding: 32px 24px 60px;
   }
+}
+
+/* Live Board Section */
+
+/* Live Board Section Wrapper */
+.live-board-section {
+  margin-top: 40px;
+  background: #0f172a;
+  border: 1px solid #1e293b;
+  border-radius: 16px;
+  padding: 24px;
+}
+
+.section-header {
+  margin-bottom: 20px;
+}
+
+.section-header h2 {
+  color: #f8fafc;
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.section-header p {
+  color: #94a3b8;
+  font-size: 0.875rem;
+}
+
+/* Clean Frame Container */
+.avionio-widget-wrapper {
+  background: #0f172a;
+  border: 1px solid #1e293b;
+  border-radius: 16px;
+  padding: 24px;
+}
+
+.avionio-widget-wrapper iframe {
+  width: 100%;
+  border-radius: 12px;
+  border: none;
+  /* Inverts the white iframe background to dark, and fine-tunes contrast */
+  filter: invert(1) hue-rotate(180deg) brightness(0.95) contrast(1.1);
+  background-color: #1e293b;
+}
+
+.avionio-widget-footer {
+  font-size: 0.75rem;
+  width: 100%;
+  text-align: center;
+  margin-top: 12px;
+}
+
+.avionio-widget-footer a {
+  text-decoration: none;
+  color: #64748b;
+  transition: color 0.2s ease;
+}
+
+.avionio-widget-footer a:hover {
+  color: #38bdf8;
+}
+
+/* Add breathing room between the live board and the flight lookup bar */
+.live-board-section {
+  margin-bottom: 32px; /* Creates space if the board is placed above */
+}
+
+/* OR if the board is below the search bar: */
+.search-container, /* target your search bar wrapper class */
+.filter-bar {
+  margin-top: 32px;
+}
+
+/* Offline Placeholder */
+
+.offline-board-placeholder {
+  display: none; /* Hidden by default */
+  width: 100%;
+  height: 400px; /* FIXED HEIGHT: prevents full-screen takeover */
+  background: #1e293b;
+  border-radius: 12px;
+  border: 1px dashed #334155;
+  color: #94a3b8;
+  text-align: center;
+  padding: 30px 20px;
+  box-sizing: border-box;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+/* Hide iframe ONLY when offline, and show fixed placeholder */
+body.is-offline .avionio-widget-wrapper iframe {
+  display: none !important;
+}
+
+body.is-offline .offline-board-placeholder {
+  display: flex !important;
 }
