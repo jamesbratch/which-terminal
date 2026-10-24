@@ -229,7 +229,65 @@
           (item.hubName && item.hubName.toLowerCase().includes(query))
         );
 
+        // Helper function to prevent XSS attacks
+function escapeHTML(str) {
+  if (!str) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+
+// In your search render loop:
+instantCard.innerHTML = matches.map(match => `
+  <div class="instant-result-item" style="...">
+    <div style="...">
+      <div>
+        <div class="instant-title">${escapeHTML(match.name)}</div>
+        <div class="instant-terminal">${escapeHTML(match.hubName || 'Airport Hub')} — ${escapeHTML(match.terminal)}</div>
+      </div>
+      <span class="iata-code">${escapeHTML(match.code)}</span>
+    </div>
+    <p class="instant-notes">${escapeHTML(match.notes || '')}</p>
+    <div>
+      <a href="${escapeHTML(match.link || '#')}">Open ${escapeHTML(match.hubName || 'Full')} Directory →</a>
+    </div>
+  </div>
+`).join('');
+        
         if (matches.length > 0) {
+
+           // Helper function to prevent XSS attacks
+function escapeHTML(str) {
+  if (!str) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+
+// In your search render loop:
+instantCard.innerHTML = matches.map(match => `
+  <div class="instant-result-item" style="...">
+    <div style="...">
+      <div>
+        <div class="instant-title">${escapeHTML(match.name)}</div>
+        <div class="instant-terminal">${escapeHTML(match.hubName || 'Airport Hub')} — ${escapeHTML(match.terminal)}</div>
+      </div>
+      <span class="iata-code">${escapeHTML(match.code)}</span>
+    </div>
+    <p class="instant-notes">${escapeHTML(match.notes || '')}</p>
+    <div>
+      <a href="${escapeHTML(match.link || '#')}">Open ${escapeHTML(match.hubName || 'Full')} Directory →</a>
+    </div>
+  </div>
+`).join(''); 
+
+          /*
           instantCard.innerHTML = matches.map(match => `
             <div class="instant-result-item" style="margin-bottom: 14px; padding-bottom: 14px; border-bottom: 1px solid var(--border-color, #334155);">
               <div style="display: flex; justify-content: space-between; align-items: flex-start;">
@@ -249,6 +307,8 @@
               </div>
             </div>
           `).join('');
+          */
+        
 
           const items = instantCard.querySelectorAll('.instant-result-item');
           if (items.length > 0) {
