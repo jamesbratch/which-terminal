@@ -203,6 +203,7 @@
   <script src="hubs/dmk/dmk-database.js"></script>
   <script src="connection-calculator.js"></script>
 
+
   <!-- Global Master Index Search Script -->
   <script>
     // Helper function to prevent XSS attacks
@@ -214,6 +215,15 @@
         .replace(/>/g, '&gt;')
         .replace(/"/g, '&quot;')
         .replace(/'/g, '&#039;');
+    }
+
+    // Debounce helper to optimize typing performance
+    function debounce(func, delay = 150) {
+      let timeout;
+      return (...args) => {
+        clearTimeout(timeout);
+        timeout = setTimeout(() => func.apply(this, args), delay);
+      };
     }
 
     document.addEventListener('DOMContentLoaded', () => {
@@ -230,7 +240,8 @@
 
       instantCard.style.display = 'none';
 
-      globalSearch.addEventListener('input', (e) => {
+      // Wrapped inside the debounce function
+      globalSearch.addEventListener('input', debounce((e) => {
         const query = e.target.value.toLowerCase().trim();
         
         if (query.length < 2) {
@@ -276,7 +287,7 @@
         } else {
           instantCard.style.display = 'none';
         }
-      });
+      }, 150));
     });
   </script>
 
