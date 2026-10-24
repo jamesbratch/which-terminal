@@ -1,31 +1,33 @@
+// dmk-database.js / don-mueang-database.js
 const dmkDatabase = [
   // Domestic Carriers (Terminal 2)
-  { name: "Thai AirAsia (Domestic)", code: "FD", terminal: "Terminal 2", tag: "t2", notes: "Main domestic low-cost hub across Thailand." },
-  { name: "Nok Air (Domestic)", code: "DD", terminal: "Terminal 2", tag: "t2", notes: "Domestic routes across Thailand." },
-  { name: "Thai Lion Air (Domestic)", code: "SL", terminal: "Terminal 2", tag: "t2", notes: "Domestic mainline routes." },
-  { name: "Bangkok Airways (Domestic)", code: "PG", terminal: "Terminal 2", tag: "t2", notes: "Boutique service to Koh Samui (USM)." },
+  { name: "Thai AirAsia (Domestic)", code: "FD", terminal: "Terminal 2", tag: "t2", hubName: "Bangkok (DMK)", hubCode: "dmk", link: "hubs/dmk/dmk.html", notes: "Main domestic low-cost hub across Thailand." },
+  { name: "Nok Air (Domestic)", code: "DD", terminal: "Terminal 2", tag: "t2", hubName: "Bangkok (DMK)", hubCode: "dmk", link: "hubs/dmk/dmk.html", notes: "Domestic routes across Thailand." },
+  { name: "Thai Lion Air (Domestic)", code: "SL", terminal: "Terminal 2", tag: "t2", hubName: "Bangkok (DMK)", hubCode: "dmk", link: "hubs/dmk/dmk.html", notes: "Domestic mainline routes." },
+  { name: "Bangkok Airways (Domestic)", code: "PG", terminal: "Terminal 2", tag: "t2", hubName: "Bangkok (DMK)", hubCode: "dmk", link: "hubs/dmk/dmk.html", notes: "Boutique service to Koh Samui (USM)." },
 
   // International Low-Cost & Regional Carriers (Terminal 1)
-  { name: "Thai AirAsia (International)", code: "FD", terminal: "Terminal 1", tag: "t1", notes: "Regional international routes." },
-  { name: "Thai AirAsia X", code: "XJ", terminal: "Terminal 1", tag: "t1", notes: "Medium/long-haul budget (Japan, Korea, Australia)." },
-  { name: "Nok Air (International)", code: "DD", terminal: "Terminal 1", tag: "t1", notes: "Regional international flights (China, India)." },
-  { name: "Thai Lion Air (International)", code: "SL", terminal: "Terminal 1", tag: "t1", notes: "International Asian destinations." },
-  { name: "AirAsia Malaysia", code: "AK", terminal: "Terminal 1", tag: "t1", notes: "Kuala Lumpur & Penang." },
-  { name: "AirAsia Philippines", code: "Z2", terminal: "Terminal 1", tag: "t1", notes: "Manila flights." },
-  { name: "Indonesia AirAsia", code: "QZ", terminal: "Terminal 1", tag: "t1", notes: "Jakarta Soekarno-Hatta & Bali." },
-  { name: "Batik Air Malaysia", code: "OD", terminal: "Terminal 1", tag: "t1", notes: "Kuala Lumpur hub." },
-  { name: "Batik Air Indonesia", code: "ID", terminal: "Terminal 1", tag: "t1", notes: "Jakarta Soekarno-Hatta." },
-  { name: "Cebu Pacific", code: "5J", terminal: "Terminal 1", tag: "t1", notes: "Manila, Cebu, and Davao connections." },
-  { name: "flydubai", code: "FZ", terminal: "Terminal 1", tag: "t1", notes: "Dubai international connections." },
-  { name: "Citilink", code: "QG", terminal: "Terminal 1", tag: "t1", notes: "Indonesia low-cost." },
-  { name: "Myanmar Airways International", code: "8M", terminal: "Terminal 1", tag: "t1", notes: "Yangon & Mandalay." },
-  { name: "Spring Airlines", code: "9C", terminal: "Terminal 1", tag: "t1", notes: "Shanghai, Xiamen & Xi'an." },
-  { name: "9 Air", code: "AQ", terminal: "Terminal 1", tag: "t1", notes: "Guangzhou low-cost routes." },
-  { name: "Air Macau", code: "NX", terminal: "Terminal 1", tag: "t1", notes: "Macau direct flights." }
+  { name: "Thai AirAsia (International)", code: "FD", terminal: "Terminal 1", tag: "t1", hubName: "Bangkok (DMK)", hubCode: "dmk", link: "hubs/dmk/dmk.html", notes: "Regional international routes." },
+  { name: "Thai AirAsia X", code: "XJ", terminal: "Terminal 1", tag: "t1", hubName: "Bangkok (DMK)", hubCode: "dmk", link: "hubs/dmk/dmk.html", notes: "Medium/long-haul budget (Japan, Korea, Australia)." },
+  { name: "Nok Air (International)", code: "DD", terminal: "Terminal 1", tag: "t1", hubName: "Bangkok (DMK)", hubCode: "dmk", link: "hubs/dmk/dmk.html", notes: "Regional international flights (China, India)." },
+  { name: "Thai Lion Air (International)", code: "SL", terminal: "Terminal 1", tag: "t1", hubName: "Bangkok (DMK)", hubCode: "dmk", link: "hubs/dmk/dmk.html", notes: "International Asian destinations." },
+  { name: "AirAsia Malaysia", code: "AK", terminal: "Terminal 1", tag: "t1", hubName: "Bangkok (DMK)", hubCode: "dmk", link: "hubs/dmk/dmk.html", notes: "Kuala Lumpur & Penang." },
+  { name: "AirAsia Philippines", code: "Z2", terminal: "Terminal 1", tag: "t1", hubName: "Bangkok (DMK)", hubCode: "dmk", link: "hubs/dmk/dmk.html", notes: "Manila flights." },
+  { name: "Indonesia AirAsia", code: "QZ", terminal: "Terminal 1", tag: "t1", hubName: "Bangkok (DMK)", hubCode: "dmk", link: "hubs/dmk/dmk.html", notes: "Jakarta Soekarno-Hatta & Bali." },
+  { name: "Batik Air Malaysia", code: "OD", terminal: "Terminal 1", tag: "t1", hubName: "Bangkok (DMK)", hubCode: "dmk", link: "hubs/dmk/dmk.html", notes: "Kuala Lumpur hub." },
+  { name: "Batik Air Indonesia", code: "ID", terminal: "Terminal 1", tag: "t1", hubName: "Bangkok (DMK)", hubCode: "dmk", link: "hubs/dmk/dmk.html", notes: "Jakarta Soekarno-Hatta." },
+  { name: "Cebu Pacific", code: "5J", terminal: "Terminal 1", tag: "t1", hubName: "Bangkok (DMK)", hubCode: "dmk", link: "hubs/dmk/dmk.html", notes: "Manila, Cebu, and Davao connections." },
+  { name: "flydubai", code: "FZ", terminal: "Terminal 1", tag: "t1", hubName: "Bangkok (DMK)", hubCode: "dmk", link: "hubs/dmk/dmk.html", notes: "Dubai international connections." },
+  { name: "Citilink", code: "QG", terminal: "Terminal 1", tag: "t1", hubName: "Bangkok (DMK)", hubCode: "dmk", link: "hubs/dmk/dmk.html", notes: "Indonesia low-cost." },
+  { name: "Myanmar Airways International", code: "8M", terminal: "Terminal 1", tag: "t1", hubName: "Bangkok (DMK)", hubCode: "dmk", link: "hubs/dmk/dmk.html", notes: "Yangon & Mandalay." },
+  { name: "Spring Airlines", code: "9C", terminal: "Terminal 1", tag: "t1", hubName: "Bangkok (DMK)", hubCode: "dmk", link: "hubs/dmk/dmk.html", notes: "Shanghai, Xiamen & Xi'an." },
+  { name: "9 Air", code: "AQ", terminal: "Terminal 1", tag: "t1", hubName: "Bangkok (DMK)", hubCode: "dmk", link: "hubs/dmk/dmk.html", notes: "Guangzhou low-cost routes." },
+  { name: "Air Macau", code: "NX", terminal: "Terminal 1", tag: "t1", hubName: "Bangkok (DMK)", hubCode: "dmk", link: "hubs/dmk/dmk.html", notes: "Macau direct flights." }
 ];
 
-// Always expose array globally
+// Dual global exposure for both DMK UI and Global Homepage Search
 window.dmkDatabase = dmkDatabase;
+window.DMK_AIRLINES = dmkDatabase;
 
 // Page UI Execution (Only runs on dmk.html where directory elements exist)
 document.addEventListener('DOMContentLoaded', () => {
