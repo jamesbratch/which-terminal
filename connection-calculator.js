@@ -124,9 +124,21 @@ function evaluateConnectionRisk() {
   const incomingAirline = airlines[parseInt(inVal)];
   const outgoingAirline = airlines[parseInt(outVal)];
 
-  if (!incomingAirline || !outgoingAirline) {
-    alert("Please select valid incoming and outgoing airlines.");
-    return;
+  ruleKey = "SAME_TERMINAL";
+  transferName = "Same Terminal Transfer";
+  transitBuffer = 15; 
+  checkInCutoff = 45;
+
+  if (inAirport !== outAirport) {
+    ruleKey = "CROSS_AIRPORT";
+    transferName = `Cross-Airport Transfer (${inAirport} ↔ ${outAirport})`;
+    transitBuffer = hubConfig.crossAirportMins || 120; // Uses the 120-min BKK<->DMK buffer
+    checkInCutoff = 60; // International/LCC cross-airport check-in cutoff
+    isIntl = true; // FORCE IMMIGRATION
+  } else if (incomingAirline.terminal !== outgoingAirline.terminal) {
+    ruleKey = "CROSS_TERMINAL";
+    transferName = "Cross-Terminal Transfer";
+    transitBuffer = hubConfig.interTerminalMins || 40;
   }
 
   // 1. Dynamic Airport Tagging (Defaults to selectedHubCode if no sub-airport is specified)
