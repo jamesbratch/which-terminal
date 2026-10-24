@@ -146,7 +146,7 @@ function evaluateConnectionRisk() {
     transferName = `Cross-Airport Transfer (${inAirport} ↔ ${outAirport})`;
     transitBuffer = hubConfig.crossAirport.transitMins;
     baggageBuffer = hubConfig.crossAirport.baggageMins;
-    checkInCutoff = 60;
+    checkInCutoff = hubConfig.crossAirport.checkInCutoff || 60;
     isIntl = true;
   } else if (incomingAirline.terminal !== outgoingAirline.terminal) {
     ruleKey = "CROSS_TERMINAL";

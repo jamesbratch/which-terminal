@@ -12,14 +12,14 @@ const TRANSIT_CONFIG = {
     checkInCutoff: 45,
     sameTerminal: { transitMins: 10, baggageMins: 30 },
     crossTerminal: { transitMins: 40, baggageMins: 35 },
-    crossAirport: { transitMins: 90, baggageMins: 40 }
+    crossAirport: { transitMins: 90, baggageMins: 40, checkInCutoff: 60 }
   },
   DMK: {
     immigrationMins: 45,
     checkInCutoff: 45,
     sameTerminal: { transitMins: 10, baggageMins: 30 },
-    crossTerminal: { transitMins: 30, baggageMins: 35 }, // DMK T1 / T2 split
-    crossAirport: { transitMins: 90, baggageMins: 40 }
+    crossTerminal: { transitMins: 30, baggageMins: 35 },
+    crossAirport: { transitMins: 90, baggageMins: 40, checkInCutoff: 60 }
   }
 };
 
