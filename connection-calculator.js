@@ -133,30 +133,33 @@ function evaluateConnectionRisk() {
   const outAirport = outgoingAirline.airport || selectedHubCode;
 
   const transitConfig = window.TRANSIT_CONFIG || {};
-  const hubConfig = transitConfig[selectedHubCode] || { immigrationMins: 45, baggageMins: 35, interTerminalMins: 40, crossAirportMins: 120 };
+  const hubConfig = transitConfig[selectedHubCode] || transitConfig['MNL'];
 
   let ruleKey = "SAME_TERMINAL";
   let transferName = "Same Terminal Transfer";
-  let transitBuffer = 15; 
-  let checkInCutoff = 45;
+  let transitBuffer = hubConfig.sameTerminal.transitMins;
+  let baggageBuffer = hubConfig.sameTerminal.baggageMins;
+  let checkInCutoff = hubConfig.checkInCutoff;
 
   if (inAirport !== outAirport) {
     ruleKey = "CROSS_AIRPORT";
     transferName = `Cross-Airport Transfer (${inAirport} ↔ ${outAirport})`;
-    transitBuffer = hubConfig.crossAirportMins || 120;
+    transitBuffer = hubConfig.crossAirport.transitMins;
+    baggageBuffer = hubConfig.crossAirport.baggageMins;
     checkInCutoff = 60;
     isIntl = true;
   } else if (incomingAirline.terminal !== outgoingAirline.terminal) {
     ruleKey = "CROSS_TERMINAL";
     transferName = "Cross-Terminal Transfer";
-    transitBuffer = hubConfig.interTerminalMins || 40;
+    transitBuffer = hubConfig.crossTerminal.transitMins;
+    baggageBuffer = hubConfig.crossTerminal.baggageMins;
   }
 
   const totalLayoverMins = (hours * 60) + mins;
   
   let requiredMins = transitBuffer + checkInCutoff;
   if (isIntl) requiredMins += hubConfig.immigrationMins;
-  if (hasBags) requiredMins += hubConfig.baggageMins;
+  if (hasBags) requiredMins += baggageBuffer;
 
   const safetyMargin = totalLayoverMins - requiredMins;
 
