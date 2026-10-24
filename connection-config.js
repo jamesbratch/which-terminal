@@ -1,25 +1,19 @@
 // connection-config.js — Centralized Transit & Risk Configuration
 const TRANSIT_CONFIG = {
   MNL: {
-    immigrationMins: 45,
-    checkInCutoff: 45,
-    sameTerminal: { transitMins: 10, baggageMins: 30 },
-    crossTerminal: { transitMins: 40, baggageMins: 35 },
-    crossAirport: { transitMins: 40, baggageMins: 40 }
+    sameTerminal: { transitMins: 10, immigrationMins: 45, baggageMins: 30, checkInCutoff: 45 },
+    crossTerminal: { transitMins: 40, immigrationMins: 45, baggageMins: 35, checkInCutoff: 45 },
+    crossAirport: { transitMins: 40, immigrationMins: 60, baggageMins: 40, checkInCutoff: 60 }
   },
   BKK: {
-    immigrationMins: 45,
-    checkInCutoff: 45,
-    sameTerminal: { transitMins: 10, baggageMins: 30 },
-    crossTerminal: { transitMins: 40, baggageMins: 35 },
-    crossAirport: { transitMins: 90, baggageMins: 40, checkInCutoff: 60 }
+    sameTerminal: { transitMins: 10, immigrationMins: 45, baggageMins: 30, checkInCutoff: 45 },
+    crossTerminal: { transitMins: 40, immigrationMins: 45, baggageMins: 35, checkInCutoff: 45 },
+    crossAirport: { transitMins: 90, immigrationMins: 60, baggageMins: 40, checkInCutoff: 60 }
   },
   DMK: {
-    immigrationMins: 45,
-    checkInCutoff: 45,
-    sameTerminal: { transitMins: 10, baggageMins: 30 },
-    crossTerminal: { transitMins: 30, baggageMins: 35 },
-    crossAirport: { transitMins: 90, baggageMins: 40, checkInCutoff: 60 }
+    sameTerminal: { transitMins: 10, immigrationMins: 45, baggageMins: 30, checkInCutoff: 45 },
+    crossTerminal: { transitMins: 30, immigrationMins: 45, baggageMins: 35, checkInCutoff: 45 },
+    crossAirport: { transitMins: 90, immigrationMins: 60, baggageMins: 40, checkInCutoff: 60 }
   }
 };
 
