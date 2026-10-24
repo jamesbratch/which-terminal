@@ -209,63 +209,92 @@
     </footer>
   </div>
 
-  <script>
-    const globalDatabase = [
-      { name: "Cebu Pacific", code: "5J", hub: "Manila (NAIA)", terminal: "Terminal 3", url: "manila-naia.html", notes: "Mainline domestic and international flights." },
-      { name: "CebGo", code: "DG", hub: "Manila (NAIA)", terminal: "Terminal 2", url: "manila-naia.html", notes: "Regional domestic turboprop flights." },
-      { name: "Philippine Airlines", code: "PR", hub: "Manila (NAIA)", terminal: "Terminal 1 (Intl) / Terminal 2 (Dom)", url: "manila-naia.html", notes: "International flights at T1; Domestic flights at T2." },
-      { name: "AirAsia Philippines", code: "Z2", hub: "Manila (NAIA)", terminal: "Terminal 1 (Intl) / Terminal 2 (Dom)", url: "manila-naia.html", notes: "International flights at T1; Domestic flights at T2." },
-      { name: "Emirates", code: "EK", hub: "Manila (NAIA)", terminal: "Terminal 3", url: "manila-naia.html", notes: "Dubai long-haul flights." },
-      { name: "Singapore Airlines", code: "SQ", hub: "Manila (NAIA)", terminal: "Terminal 3", url: "manila-naia.html", notes: "Singapore hub flights." }
-    ];
-
-    const globalSearch = document.getElementById('globalSearch');
-    const instantCard = document.getElementById('instantCard');
-    const instantAirline = document.getElementById('instantAirline');
-    const instantTerminal = document.getElementById('instantTerminal');
-    const instantNotes = document.getElementById('instantNotes');
-    const instantCode = document.getElementById('instantCode');
-    const instantLink = document.getElementById('instantLink');
-
-    globalSearch.addEventListener('input', (e) => {
-      const query = e.target.value.toLowerCase().trim();
-      
-      if (query.length >= 2) {
-        const match = globalDatabase.find(a => 
-          a.name.toLowerCase().includes(query) || 
-          a.code.toLowerCase().includes(query) ||
-          a.hub.toLowerCase().includes(query)
-        );
-
-        if (match) {
-          instantAirline.textContent = match.name + " — " + match.hub;
-          instantTerminal.textContent = match.terminal;
-          instantNotes.textContent = match.notes;
-          instantCode.textContent = match.code;
-          instantLink.href = match.url;
-          instantCard.classList.add('active');
-        } else {
-          instantCard.classList.remove('active');
-        }
-      } else {
-        instantCard.classList.remove('active');
-      }
-    });
-  </script>
+<!-- Load Hub Databases First -->
   <script src="hubs/mnl/mnl-database.js"></script>
-  <script src="hubs/dmk/dmk-database.js"></script>
   <script src="hubs/bkk/bkk-database.js"></script>
+  <script src="hubs/dmk/dmk-database.js"></script>
   <script src="connection-calculator.js"></script>
 
-<link rel="manifest" href="/manifest.json">
-<script>
-  if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
-      navigator.serviceWorker.register('/sw.js')
-        .then(reg => console.log('PWA Service Worker registered:', reg))
-        .catch(err => console.error('Service Worker registration failed:', err));
+  <!-- Global Master Index Search Script -->
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      // Combine all hub databases dynamically into a single Master Index
+      const MASTER_INDEX = [
+        ...(window.MNL_AIRLINES || []),
+        ...(window.BKK_AIRLINES || []),
+        ...(window.DMK_AIRLINES || [])
+      ];
+
+      const globalSearch = document.getElementById('globalSearch');
+      const instantCard = document.getElementById('instantCard');
+
+      if (!globalSearch || !instantCard) return;
+
+      // Hide card initially
+      instantCard.style.display = 'none';
+
+      globalSearch.addEventListener('input', (e) => {
+        const query = e.target.value.toLowerCase().trim();
+        
+        if (query.length < 2) {
+          instantCard.style.display = 'none';
+          return;
+        }
+
+        // Filter matches across name, code, or hubName
+        const matches = MASTER_INDEX.filter(item => 
+          (item.name && item.name.toLowerCase().includes(query)) || 
+          (item.code && item.code.toLowerCase().includes(query)) ||
+          (item.hubName && item.hubName.toLowerCase().includes(query))
+        );
+
+        if (matches.length > 0) {
+          // Render all matching results dynamically into the instantCard container
+          instantCard.innerHTML = matches.map(match => `
+            <div class="instant-result-item" style="margin-bottom: 14px; padding-bottom: 14px; border-bottom: 1px solid var(--border-color, #334155);">
+              <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                <div>
+                  <div class="instant-title" style="font-weight: 600; color: #f8fafc; font-size: 1rem;">${match.name}</div>
+                  <div class="instant-terminal" style="color: var(--accent-blue, #38bdf8); font-weight: 500; font-size: 0.9rem; margin-top: 2px;">
+                    ${match.hubName || 'Airport Hub'} — ${match.terminal}
+                  </div>
+                </div>
+                <span class="iata-code" style="background: #1e293b; padding: 2px 8px; border-radius: 4px; font-size: 0.85rem; color: #94a3b8; font-weight: 600;">${match.code}</span>
+              </div>
+              <p class="instant-notes" style="color: var(--text-muted, #94a3b8); font-size: 0.85rem; margin-top: 6px; margin-bottom: 8px; line-height: 1.4;">${match.notes || ''}</p>
+              <div>
+                <a href="${match.link || '#'}" style="color: var(--accent-blue, #38bdf8); font-size: 0.85rem; font-weight: 600; text-decoration: none;">
+                  Open ${match.hubName || 'Full'} Directory →
+                </a>
+              </div>
+            </div>
+          `).join('');
+
+          // Clean up the bottom border of the last item
+          const items = instantCard.querySelectorAll('.instant-result-item');
+          if (items.length > 0) {
+            items[items.length - 1].style.borderBottom = 'none';
+            items[items.length - 1].style.marginBottom = '0';
+            items[items.length - 1].style.paddingBottom = '0';
+          }
+
+          instantCard.style.display = 'block';
+        } else {
+          instantCard.style.display = 'none';
+        }
+      });
     });
-  }
-</script>
+  </script>
+
+  <link rel="manifest" href="/manifest.json">
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js')
+          .then(reg => console.log('PWA Service Worker registered:', reg))
+          .catch(err => console.error('Service Worker registration failed:', err));
+      });
+    }
+  </script>
 </body>
 </html>
