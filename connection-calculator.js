@@ -124,47 +124,32 @@ function evaluateConnectionRisk() {
   const incomingAirline = airlines[parseInt(inVal)];
   const outgoingAirline = airlines[parseInt(outVal)];
 
-  ruleKey = "SAME_TERMINAL";
-  transferName = "Same Terminal Transfer";
-  transitBuffer = 15; 
-  checkInCutoff = 45;
-
-  if (inAirport !== outAirport) {
-    ruleKey = "CROSS_AIRPORT";
-    transferName = `Cross-Airport Transfer (${inAirport} ↔ ${outAirport})`;
-    transitBuffer = hubConfig.crossAirportMins || 120; // Uses the 120-min BKK<->DMK buffer
-    checkInCutoff = 60; // International/LCC cross-airport check-in cutoff
-    isIntl = true; // FORCE IMMIGRATION
-  } else if (incomingAirline.terminal !== outgoingAirline.terminal) {
-    ruleKey = "CROSS_TERMINAL";
-    transferName = "Cross-Terminal Transfer";
-    transitBuffer = hubConfig.interTerminalMins || 40;
+  if (!incomingAirline || !outgoingAirline) {
+    alert("Please select valid incoming and outgoing airlines.");
+    return;
   }
 
-  // 1. Dynamic Airport Tagging (Defaults to selectedHubCode if no sub-airport is specified)
   const inAirport = incomingAirline.airport || selectedHubCode;
   const outAirport = outgoingAirline.airport || selectedHubCode;
 
-  // Pull configurations dynamically from connection-config.js (window.TRANSIT_CONFIG)
   const transitConfig = window.TRANSIT_CONFIG || {};
-  const hubConfig = transitConfig[selectedHubCode] || { immigrationMins: 45, baggageMins: 35, interTerminalMins: 40 };
+  const hubConfig = transitConfig[selectedHubCode] || { immigrationMins: 45, baggageMins: 35, interTerminalMins: 40, crossAirportMins: 120 };
 
   let ruleKey = "SAME_TERMINAL";
   let transferName = "Same Terminal Transfer";
-  let transitBuffer = 15; // default buffer for same terminal
-  const checkInCutoff = 45;
+  let transitBuffer = 15; 
+  let checkInCutoff = 45;
 
   if (inAirport !== outAirport) {
     ruleKey = "CROSS_AIRPORT";
     transferName = `Cross-Airport Transfer (${inAirport} ↔ ${outAirport})`;
-    transitBuffer = hubConfig.interTerminalMins || 90;
-    isIntl = true; // FORCE IMMIGRATION: Inter-airport transfer requires immigration entry!
+    transitBuffer = hubConfig.crossAirportMins || 120;
+    checkInCutoff = 60;
+    isIntl = true;
   } else if (incomingAirline.terminal !== outgoingAirline.terminal) {
     ruleKey = "CROSS_TERMINAL";
     transferName = "Cross-Terminal Transfer";
     transitBuffer = hubConfig.interTerminalMins || 40;
-  } else {
-    transitBuffer = 10;
   }
 
   const totalLayoverMins = (hours * 60) + mins;
@@ -184,7 +169,6 @@ function evaluateConnectionRisk() {
   if (!resultCard) return;
   resultCard.style.display = 'block';
 
-  // Dynamic transfer label for breakdown
   const transitLabel = (ruleKey === 'CROSS_AIRPORT') 
     ? `${inAirport}↔${outAirport} Ground Travel` 
     : 'Transit & Terminal Transfer';
