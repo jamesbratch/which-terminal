@@ -9,123 +9,108 @@
 </head>
 <body>
 
+  <!-- Site Top Header / Navigation -->
   <header class="site-header">
-  <div class="header-container">
-    <a href="../../index.html" class="brand-logo">
-      <img src="../../assets/logo.png" alt="WhichTerminal Logo" class="logo-img" width="180" height="40">
-    </a>
-  </div>
-</header>
+    <div class="header-container">
+      <a href="index.html" class="brand-logo">
+        <img src="assets/logo.png" alt="WhichTerminal Logo" class="logo-img" width="180" height="40">
+      </a>
+    </div>
+  </header>
 
   <div class="page-wrapper">
-    <!-- Header Banner -->
-    <header class="hero-header">
+    <!-- Hero Header Banner with Embedded Search -->
+    <header class="hero-header" style="margin-bottom: 32px;">
       <h1>Southeast Asia Airport Terminal Finder</h1>
       <p class="hero-subtext">Verified airline terminal mappings, transfer logistics, and travel warnings for complex regional transit hubs.</p>
       
-      <div class="verified-meta">
+      <!-- Integrated Hero Search Bar -->
+      <section class="toolbar" style="margin: 20px 0 12px 0;">
+        <div class="search-field">
+          <span class="search-icon">🔍</span>
+          <input type="text" id="globalSearch" placeholder="Search airline or airport (e.g. Cebu Pacific, NAIA, AirAsia)..." autocomplete="off">
+        </div>
+      </section>
+
+      <!-- Global Quick Search Hero Results Card -->
+      <div id="instantCard" class="instant-result-card" style="margin-top: 12px; text-align: left;"></div>
+
+      <div class="verified-meta" style="margin-top: 16px;">
         <span>✓</span> Data Updated: October 2026
       </div>
     </header>
 
-
-<!-- Connection Risk Calculator Widget -->
-<section class="calculator-container" style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 20px; margin-bottom: 32px;">
-  <div style="margin-bottom: 16px;">
-    <h2 style="font-size: 1.25rem; font-weight: 800; color: #fff; margin-bottom: 4px;">⚡ Self-Transfer Risk Calculator</h2>
-    <p style="font-size: 0.85rem; color: var(--text-muted);">Select your connecting airlines and layover window to calculate real-world transit risk.</p>
-  </div>
-
-  <form id="riskCalcForm" style="display: flex; flex-direction: column; gap: 14px;">
-    
-    <!-- Airport Hub Selector -->
-    <div>
-      <label style="display: block; font-size: 0.8rem; font-weight: 600; color: var(--text-muted); margin-bottom: 6px;">AIRPORT HUB</label>
-      <select id="calcHub" style="width: 100%; background: var(--bg-input); border: 1px solid var(--border-color); color: #fff; padding: 12px; border-radius: 8px; font-size: 0.9rem; outline: none;">
-        <option value="MNL">🇵🇭 Manila Ninoy Aquino (NAIA)</option>
-        <option value="BKK">🇹🇭 Bangkok Suvarnabhumi (BKK) and Bangkok Don Mueang (DMK)</option>
-      </select>
-    </div>
-
-    <!-- Incoming Airline Dropdown (Auto-filled by JS) -->
-    <div>
-      <label style="display: block; font-size: 0.8rem; font-weight: 600; color: var(--text-muted); margin-bottom: 6px;">INCOMING AIRLINE</label>
-      <select id="calcInAirline" style="width: 100%; background: var(--bg-input); border: 1px solid var(--border-color); color: #fff; padding: 12px; border-radius: 8px; font-size: 0.9rem; outline: none;">
-        <option value="">-- Select Hub First --</option>
-      </select>
-    </div>
-
-    <!-- Outgoing Airline Dropdown (Auto-filled by JS) -->
-    <div>
-      <label style="display: block; font-size: 0.8rem; font-weight: 600; color: var(--text-muted); margin-bottom: 6px;">OUTGOING AIRLINE</label>
-      <select id="calcOutAirline" style="width: 100%; background: var(--bg-input); border: 1px solid var(--border-color); color: #fff; padding: 12px; border-radius: 8px; font-size: 0.9rem; outline: none;">
-        <option value="">-- Select Hub First --</option>
-      </select>
-    </div>
-
-    <!-- Layover Window Inputs -->
-    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
-      <div>
-        <label style="display: block; font-size: 0.8rem; font-weight: 600; color: var(--text-muted); margin-bottom: 6px;">LAYOVER HOURS</label>
-        <input type="number" id="calcHours" min="0" max="24" value="2" placeholder="Hours" style="width: 100%; background: var(--bg-input); border: 1px solid var(--border-color); color: #fff; padding: 12px; border-radius: 8px; font-size: 0.9rem; outline: none;">
+    <!-- Connection Risk Calculator Widget -->
+    <section class="calculator-container" style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 20px; margin-bottom: 32px;">
+      <div style="margin-bottom: 16px;">
+        <h2 style="font-size: 1.25rem; font-weight: 800; color: #fff; margin-bottom: 4px;">⚡ Self-Transfer Risk Calculator</h2>
+        <p style="font-size: 0.85rem; color: var(--text-muted);">Select your connecting airlines and layover window to calculate real-world transit risk.</p>
       </div>
-      <div>
-        <label style="display: block; font-size: 0.8rem; font-weight: 600; color: var(--text-muted); margin-bottom: 6px;">MINUTES</label>
-        <input type="number" id="calcMins" min="0" max="59" value="30" placeholder="Mins" style="width: 100%; background: var(--bg-input); border: 1px solid var(--border-color); color: #fff; padding: 12px; border-radius: 8px; font-size: 0.9rem; outline: none;">
-      </div>
-    </div>
 
-    <!-- Toggles -->
-    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 4px;">
-      <label style="display: flex; align-items: center; gap: 8px; font-size: 0.85rem; color: var(--text-main); cursor: pointer;">
-        <input type="checkbox" id="calcIntl" checked style="accent-color: var(--accent-blue); width: 16px; height: 16px;">
-        Intl Flight (Immigration)
-      </label>
-      <label style="display: flex; align-items: center; gap: 8px; font-size: 0.85rem; color: var(--text-main); cursor: pointer;">
-        <input type="checkbox" id="calcBags" checked style="accent-color: var(--accent-blue); width: 16px; height: 16px;">
-        Checked Baggage
-      </label>
-    </div>
+      <form id="riskCalcForm" style="display: flex; flex-direction: column; gap: 14px;">
+        <!-- Airport Hub Selector -->
+        <div>
+          <label style="display: block; font-size: 0.8rem; font-weight: 600; color: var(--text-muted); margin-bottom: 6px;">AIRPORT HUB</label>
+          <select id="calcHub" style="width: 100%; background: var(--bg-input); border: 1px solid var(--border-color); color: #fff; padding: 12px; border-radius: 8px; font-size: 0.9rem; outline: none;">
+            <option value="MNL">🇵🇭 Manila Ninoy Aquino (NAIA)</option>
+            <option value="BKK">🇹🇭 Bangkok Suvarnabhumi (BKK) and Bangkok Don Mueang (DMK)</option>
+          </select>
+        </div>
 
-    <!-- Submit Button -->
-    <button type="button" id="calcSubmitBtn" class="card-btn" style="background: var(--accent-blue); color: #000; border: none; font-weight: 700; margin-top: 8px; cursor: pointer;">
-      Evaluate Connection Risk →
-    </button>
-  </form>
+        <!-- Incoming Airline Dropdown -->
+        <div>
+          <label style="display: block; font-size: 0.8rem; font-weight: 600; color: var(--text-muted); margin-bottom: 6px;">INCOMING AIRLINE</label>
+          <select id="calcInAirline" style="width: 100%; background: var(--bg-input); border: 1px solid var(--border-color); color: #fff; padding: 12px; border-radius: 8px; font-size: 0.9rem; outline: none;">
+            <option value="">-- Select Hub First --</option>
+          </select>
+        </div>
 
-  <!-- Risk Result Display Area -->
-  <div id="calcResult" style="display: none; margin-top: 20px; padding: 16px; border-radius: 8px; border: 1px solid var(--border-color);">
-    <div id="riskBadge" style="display: inline-block; font-weight: 800; font-size: 0.9rem; padding: 4px 10px; border-radius: 6px; margin-bottom: 8px;"></div>
-    <div id="riskTitle" style="font-size: 1.1rem; font-weight: 700; color: #fff; margin-bottom: 4px;"></div>
-    <p id="riskDesc" style="font-size: 0.85rem; color: var(--text-muted); line-height: 1.45;"></p>
-    <div id="riskBreakdown" style="margin-top: 12px; padding-top: 12px; border-top: 1px dashed var(--border-color); font-size: 0.8rem; color: var(--text-dim);"></div>
-  </div>
-</section>
+        <!-- Outgoing Airline Dropdown -->
+        <div>
+          <label style="display: block; font-size: 0.8rem; font-weight: 600; color: var(--text-muted); margin-bottom: 6px;">OUTGOING AIRLINE</label>
+          <select id="calcOutAirline" style="width: 100%; background: var(--bg-input); border: 1px solid var(--border-color); color: #fff; padding: 12px; border-radius: 8px; font-size: 0.9rem; outline: none;">
+            <option value="">-- Select Hub First --</option>
+          </select>
+        </div>
 
+        <!-- Layover Window Inputs -->
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+          <div>
+            <label style="display: block; font-size: 0.8rem; font-weight: 600; color: var(--text-muted); margin-bottom: 6px;">LAYOVER HOURS</label>
+            <input type="number" id="calcHours" min="0" max="24" value="2" placeholder="Hours" style="width: 100%; background: var(--bg-input); border: 1px solid var(--border-color); color: #fff; padding: 12px; border-radius: 8px; font-size: 0.9rem; outline: none;">
+          </div>
+          <div>
+            <label style="display: block; font-size: 0.8rem; font-weight: 600; color: var(--text-muted); margin-bottom: 6px;">MINUTES</label>
+            <input type="number" id="calcMins" min="0" max="59" value="30" placeholder="Mins" style="width: 100%; background: var(--bg-input); border: 1px solid var(--border-color); color: #fff; padding: 12px; border-radius: 8px; font-size: 0.9rem; outline: none;">
+          </div>
+        </div>
 
+        <!-- Toggles -->
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 4px;">
+          <label style="display: flex; align-items: center; gap: 8px; font-size: 0.85rem; color: var(--text-main); cursor: pointer;">
+            <input type="checkbox" id="calcIntl" checked style="accent-color: var(--accent-blue); width: 16px; height: 16px;">
+            Intl Flight (Immigration)
+          </label>
+          <label style="display: flex; align-items: center; gap: 8px; font-size: 0.85rem; color: var(--text-main); cursor: pointer;">
+            <input type="checkbox" id="calcBags" checked style="accent-color: var(--accent-blue); width: 16px; height: 16px;">
+            Checked Baggage
+          </label>
+        </div>
 
-    <!-- Toolbar: Global Quick Search -->
-    <section class="toolbar">
-      <div class="search-field">
-        <span class="search-icon">🔍</span>
-        <input type="text" id="globalSearch" placeholder="Search airline or airport (e.g. Cebu Pacific, NAIA, AirAsia)..." autocomplete="off">
+        <!-- Submit Button -->
+        <button type="button" id="calcSubmitBtn" class="card-btn" style="background: var(--accent-blue); color: #000; border: none; font-weight: 700; margin-top: 8px; cursor: pointer;">
+          Evaluate Connection Risk →
+        </button>
+      </form>
+
+      <!-- Risk Result Display Area -->
+      <div id="calcResult" style="display: none; margin-top: 20px; padding: 16px; border-radius: 8px; border: 1px solid var(--border-color);">
+        <div id="riskBadge" style="display: inline-block; font-weight: 800; font-size: 0.9rem; padding: 4px 10px; border-radius: 6px; margin-bottom: 8px;"></div>
+        <div id="riskTitle" style="font-size: 1.1rem; font-weight: 700; color: #fff; margin-bottom: 4px;"></div>
+        <p id="riskDesc" style="font-size: 0.85rem; color: var(--text-muted); line-height: 1.45;"></p>
+        <div id="riskBreakdown" style="margin-top: 12px; padding-top: 12px; border-top: 1px dashed var(--border-color); font-size: 0.8rem; color: var(--text-dim);"></div >
       </div>
     </section>
-
-    <!-- Global Quick Search Hero Result -->
-    <div id="instantCard" class="instant-result-card">
-      <div style="display: flex; justify-content: space-between; align-items: flex-start;">
-        <div>
-          <div id="instantAirline" class="instant-title">Cebu Pacific (5J)</div>
-          <div id="instantTerminal" class="instant-terminal">Terminal 3</div>
-        </div>
-        <span id="instantCode" class="iata-code">5J</span>
-      </div>
-      <p id="instantNotes" class="instant-notes"></p>
-      <div style="margin-top: 12px; border-top: 1px solid var(--border-color); padding-top: 8px;">
-        <a id="instantLink" href="manila-naia.html" style="color: var(--accent-blue); font-size: 0.85rem; font-weight: 600; text-decoration: none;">Open Manila NAIA Full Directory →</a>
-      </div>
-    </div>
 
     <!-- Hub Directories List -->
     <section>
@@ -135,41 +120,40 @@
       </div>
 
       <div class="airline-list">
+        <!-- Manila -->
+        <div class="airline-card">
+          <div class="airline-card-top">
+            <span class="airline-name">🇵🇭 Manila Ninoy Aquino (NAIA)</span>
+            <span class="iata-code">MNL</span>
+          </div>
+          <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 8px;">
+            <span class="terminal-tag t1">3 Terminals Active</span>
+            <span class="terminal-tag" style="background: #0f172a; color: #38bdf8; border: 1px solid #334155;">Live Board Included</span>
+          </div>
+          <p class="airline-notes">Real-time departures & arrivals tracking, verified terminal directory, and inter-terminal transfer logistics across physically separated runway zones.</p>
+          
+          <div style="margin-top: 12px;">
+            <a href="hubs/mnl/mnl.html" class="card-btn">MNL Directory →</a>
+          </div>
+        </div>
 
-<!-- Manila -->
-<div class="airline-card">
-  <div class="airline-card-top">
-    <span class="airline-name">🇵🇭 Manila Ninoy Aquino (NAIA)</span>
-    <span class="iata-code">MNL</span>
-  </div>
-  <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 8px;">
-    <span class="terminal-tag t1">3 Terminals Active</span>
-    <span class="terminal-tag" style="background: #0f172a; color: #38bdf8; border: 1px solid #334155;">Live Board Included</span>
-  </div>
-  <p class="airline-notes">Real-time departures & arrivals tracking, verified terminal directory, and inter-terminal transfer logistics across physically separated runway zones.</p>
-  
-  <div style="margin-top: 12px;">
-    <a href="/hubs/mnl/mnl.html" class="card-btn">MNL Directory →</a>
-  </div>
-</div>
-
-<!-- Bangkok Hubs -->
-<div class="airline-card">
-  <div class="airline-card-top">
-    <span class="airline-name">🇹🇭 Bangkok Hubs (BKK & DMK)</span>
-    <span class="iata-code">BKK / DMK</span>
-  </div>
-  <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 8px;">
-    <span class="terminal-tag t3">2 Airports Split</span>
-    <span class="terminal-tag" style="background: #0f172a; color: #38bdf8; border: 1px solid #334155;">Live Boards Included</span>
-  </div>
-  <p class="airline-notes">Live flight tracking for Suvarnabhumi & Don Mueang, full-service vs. LCC carrier splits, SAT-1 guides, and airport shuttle transfer timings.</p>
-  
-  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 12px;">
-    <a href="/hubs/bkk/bkk.html" class="card-btn">BKK Guide →</a>
-    <a href="/hubs/dmk/dmk.html" class="card-btn">DMK Guide →</a>
-  </div>
-</div>
+        <!-- Bangkok Hubs -->
+        <div class="airline-card">
+          <div class="airline-card-top">
+            <span class="airline-name">🇹🇭 Bangkok Hubs (BKK & DMK)</span>
+            <span class="iata-code">BKK / DMK</span>
+          </div>
+          <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 8px;">
+            <span class="terminal-tag t3">2 Airports Split</span>
+            <span class="terminal-tag" style="background: #0f172a; color: #38bdf8; border: 1px solid #334155;">Live Boards Included</span>
+          </div>
+          <p class="airline-notes">Live flight tracking for Suvarnabhumi & Don Mueang, full-service vs. LCC carrier splits, SAT-1 guides, and airport shuttle transfer timings.</p>
+          
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 12px;">
+            <a href="hubs/bkk/bkk.html" class="card-btn">BKK Guide →</a>
+            <a href="hubs/dmk/dmk.html" class="card-btn">DMK Guide →</a>
+          </div>
+        </div>
 
         <!-- Kuala Lumpur Card (Upcoming) -->
         <div class="airline-card" style="opacity: 0.65;">
@@ -209,63 +193,87 @@
     </footer>
   </div>
 
-  <script>
-    const globalDatabase = [
-      { name: "Cebu Pacific", code: "5J", hub: "Manila (NAIA)", terminal: "Terminal 3", url: "manila-naia.html", notes: "Mainline domestic and international flights." },
-      { name: "CebGo", code: "DG", hub: "Manila (NAIA)", terminal: "Terminal 2", url: "manila-naia.html", notes: "Regional domestic turboprop flights." },
-      { name: "Philippine Airlines", code: "PR", hub: "Manila (NAIA)", terminal: "Terminal 1 (Intl) / Terminal 2 (Dom)", url: "manila-naia.html", notes: "International flights at T1; Domestic flights at T2." },
-      { name: "AirAsia Philippines", code: "Z2", hub: "Manila (NAIA)", terminal: "Terminal 1 (Intl) / Terminal 2 (Dom)", url: "manila-naia.html", notes: "International flights at T1; Domestic flights at T2." },
-      { name: "Emirates", code: "EK", hub: "Manila (NAIA)", terminal: "Terminal 3", url: "manila-naia.html", notes: "Dubai long-haul flights." },
-      { name: "Singapore Airlines", code: "SQ", hub: "Manila (NAIA)", terminal: "Terminal 3", url: "manila-naia.html", notes: "Singapore hub flights." }
-    ];
-
-    const globalSearch = document.getElementById('globalSearch');
-    const instantCard = document.getElementById('instantCard');
-    const instantAirline = document.getElementById('instantAirline');
-    const instantTerminal = document.getElementById('instantTerminal');
-    const instantNotes = document.getElementById('instantNotes');
-    const instantCode = document.getElementById('instantCode');
-    const instantLink = document.getElementById('instantLink');
-
-    globalSearch.addEventListener('input', (e) => {
-      const query = e.target.value.toLowerCase().trim();
-      
-      if (query.length >= 2) {
-        const match = globalDatabase.find(a => 
-          a.name.toLowerCase().includes(query) || 
-          a.code.toLowerCase().includes(query) ||
-          a.hub.toLowerCase().includes(query)
-        );
-
-        if (match) {
-          instantAirline.textContent = match.name + " — " + match.hub;
-          instantTerminal.textContent = match.terminal;
-          instantNotes.textContent = match.notes;
-          instantCode.textContent = match.code;
-          instantLink.href = match.url;
-          instantCard.classList.add('active');
-        } else {
-          instantCard.classList.remove('active');
-        }
-      } else {
-        instantCard.classList.remove('active');
-      }
-    });
-  </script>
+  <!-- Load Hub Databases First -->
   <script src="hubs/mnl/mnl-database.js"></script>
-  <script src="hubs/dmk/dmk-database.js"></script>
   <script src="hubs/bkk/bkk-database.js"></script>
+  <script src="hubs/dmk/dmk-database.js"></script>
   <script src="connection-calculator.js"></script>
 
-<link rel="manifest" href="/manifest.json">
-<script>
-  if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
-      navigator.serviceWorker.register('/sw.js')
-        .then(reg => console.log('PWA Service Worker registered:', reg))
-        .catch(err => console.error('Service Worker registration failed:', err));
+  <!-- Global Master Index Search Script -->
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const MASTER_INDEX = [
+        ...(window.MNL_AIRLINES || []),
+        ...(window.BKK_AIRLINES || []),
+        ...(window.DMK_AIRLINES || [])
+      ];
+
+      const globalSearch = document.getElementById('globalSearch');
+      const instantCard = document.getElementById('instantCard');
+
+      if (!globalSearch || !instantCard) return;
+
+      instantCard.style.display = 'none';
+
+      globalSearch.addEventListener('input', (e) => {
+        const query = e.target.value.toLowerCase().trim();
+        
+        if (query.length < 2) {
+          instantCard.style.display = 'none';
+          return;
+        }
+
+        const matches = MASTER_INDEX.filter(item => 
+          (item.name && item.name.toLowerCase().includes(query)) || 
+          (item.code && item.code.toLowerCase().includes(query)) ||
+          (item.hubName && item.hubName.toLowerCase().includes(query))
+        );
+
+        if (matches.length > 0) {
+          instantCard.innerHTML = matches.map(match => `
+            <div class="instant-result-item" style="margin-bottom: 14px; padding-bottom: 14px; border-bottom: 1px solid var(--border-color, #334155);">
+              <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                <div>
+                  <div class="instant-title" style="font-weight: 600; color: #f8fafc; font-size: 1rem;">${match.name}</div>
+                  <div class="instant-terminal" style="color: var(--accent-blue, #38bdf8); font-weight: 500; font-size: 0.9rem; margin-top: 2px;">
+                    ${match.hubName || 'Airport Hub'} — ${match.terminal}
+                  </div>
+                </div>
+                <span class="iata-code" style="background: #1e293b; padding: 2px 8px; border-radius: 4px; font-size: 0.85rem; color: #94a3b8; font-weight: 600;">${match.code}</span>
+              </div>
+              <p class="instant-notes" style="color: var(--text-muted, #94a3b8); font-size: 0.85rem; margin-top: 6px; margin-bottom: 8px; line-height: 1.4;">${match.notes || ''}</p>
+              <div>
+                <a href="${match.link || '#'}" style="color: var(--accent-blue, #38bdf8); font-size: 0.85rem; font-weight: 600; text-decoration: none;">
+                  Open ${match.hubName || 'Full'} Directory →
+                </a>
+              </div>
+            </div>
+          `).join('');
+
+          const items = instantCard.querySelectorAll('.instant-result-item');
+          if (items.length > 0) {
+            items[items.length - 1].style.borderBottom = 'none';
+            items[items.length - 1].style.marginBottom = '0';
+            items[items.length - 1].style.paddingBottom = '0';
+          }
+
+          instantCard.style.display = 'block';
+        } else {
+          instantCard.style.display = 'none';
+        }
+      });
     });
-  }
-</script>
+  </script>
+
+  <link rel="manifest" href="/manifest.json">
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js')
+          .then(reg => console.log('PWA Service Worker registered:', reg))
+          .catch(err => console.error('Service Worker registration failed:', err));
+      });
+    }
+  </script>
 </body>
 </html>
