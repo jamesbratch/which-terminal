@@ -42,13 +42,20 @@
   <div class="page-wrapper">
     <!-- Hero Header -->
     <header class="hero-header">
-      <h1>Don Mueang Airport Terminal Finder (DMK)</h1>
-      <p class="hero-subtext">Verified airline terminal mappings for Bangkok Don Mueang International Airport.</p>
-      
-      <div class="verified-meta">
-        <span>✓</span> Data Verified: October 2026 Schedule
-      </div>
-    </header>
+  <h1>Bangkok Don Mueang Terminal Guide</h1>
+  <p class="hero-subtext">Verified terminal directory, live flight tracking, and inter-terminal connection tools for Don Mueang Airport (DMK).</p>
+
+  <div class="hero-feature-tags" style="display: flex; gap: 8px; flex-wrap: wrap; margin: 12px 0 16px 0;">
+    <span style="background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); color: #cbd5e1; font-size: 0.78rem; padding: 4px 10px; border-radius: 20px;">🔍 Airline Lookup</span>
+    <span style="background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); color: #cbd5e1; font-size: 0.78rem; padding: 4px 10px; border-radius: 20px;">⚡ Self-Transfer Calculator</span>
+    <span style="background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); color: #cbd5e1; font-size: 0.78rem; padding: 4px 10px; border-radius: 20px;">📡 Live Departures</span>
+    <span style="background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); color: #cbd5e1; font-size: 0.78rem; padding: 4px 10px; border-radius: 20px;">🚶 T1 ↔ T2 Walkway</span>
+  </div>
+  
+  <div class="verified-meta">
+    <span>✓</span> Schedule Verified • October 2026
+  </div>
+</header>
 
     <!-- 1. Hero / Search Bar -->
     <section class="search-section">
@@ -59,6 +66,93 @@
       <!-- Instant Search Result Container -->
       <div id="instantCard" class="instant-result-card"></div>
     </section>
+
+    <!-- Terminal Quick Summary -->
+<section class="hub-section">
+  <div class="section-header">
+    <h2>Terminal Quick Summary</h2>
+  </div>
+  <div class="terminal-summary-grid">
+    <div class="terminal-card">
+      <div class="card-header">
+        <h3>Terminal 1</h3>
+        <span class="card-tag info">✈️ International</span>
+      </div>
+      <p class="card-role"><strong>Primary Role:</strong> International Departures & Arrivals</p>
+      <p class="card-transit"><strong>Transit Note:</strong> Directly connected to T2 via an internal covered walkway.</p>
+      <p class="card-highlight">Main hub for AirAsia Int'l, Thai Lion Air Int'l & regional LCCs.</p>
+    </div>
+
+    <div class="terminal-card">
+      <div class="card-header">
+        <h3>Terminal 2</h3>
+        <span class="card-tag success">🇹🇭 Domestic</span>
+      </div>
+      <p class="card-role"><strong>Primary Role:</strong> Domestic Flights</p>
+      <p class="card-transit"><strong>Transit Note:</strong> 3–5 min indoor walk from T1.</p>
+      <p class="card-highlight">Handles domestic AirAsia, Nok Air, and Thai Lion Air.</p>
+    </div>
+  </div>
+</section>
+
+<!-- Self-Transfer Risk Calculator Widget (DMK) -->
+<section class="calculator-container" style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 20px; margin-top: 32px; margin-bottom: 32px;">
+  <div style="margin-bottom: 16px;">
+    <h2 style="font-size: 1.25rem; font-weight: 800; color: #fff; margin-bottom: 4px;">⚡ Self-Transfer Risk Calculator</h2>
+    <p style="font-size: 0.85rem; color: var(--text-muted);">Select your connecting airlines and layover window to calculate real-world Don Mueang transit risk.</p>
+  </div>
+
+  <form id="riskCalcForm" style="display: flex; flex-direction: column; gap: 14px;">
+    <input type="hidden" id="calcHub" value="DMK">
+
+    <div>
+      <label style="display: block; font-size: 0.8rem; font-weight: 600; color: var(--text-muted); margin-bottom: 6px;">INCOMING AIRLINE</label>
+      <select id="calcInAirline" style="width: 100%; background: var(--bg-input); border: 1px solid var(--border-color); color: #fff; padding: 12px; border-radius: 8px; font-size: 0.9rem; outline: none;">
+        <option value="">-- Loading Airlines... --</option>
+      </select>
+    </div>
+
+    <div>
+      <label style="display: block; font-size: 0.8rem; font-weight: 600; color: var(--text-muted); margin-bottom: 6px;">OUTGOING AIRLINE</label>
+      <select id="calcOutAirline" style="width: 100%; background: var(--bg-input); border: 1px solid var(--border-color); color: #fff; padding: 12px; border-radius: 8px; font-size: 0.9rem; outline: none;">
+        <option value="">-- Loading Airlines... --</option>
+      </select>
+    </div>
+
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+      <div>
+        <label style="display: block; font-size: 0.8rem; font-weight: 600; color: var(--text-muted); margin-bottom: 6px;">LAYOVER HOURS</label>
+        <input type="number" id="calcHours" min="0" max="24" value="2" placeholder="Hours" style="width: 100%; background: var(--bg-input); border: 1px solid var(--border-color); color: #fff; padding: 12px; border-radius: 8px; font-size: 0.9rem; outline: none;">
+      </div>
+      <div>
+        <label style="display: block; font-size: 0.8rem; font-weight: 600; color: var(--text-muted); margin-bottom: 6px;">MINUTES</label>
+        <input type="number" id="calcMins" min="0" max="59" value="30" placeholder="Mins" style="width: 100%; background: var(--bg-input); border: 1px solid var(--border-color); color: #fff; padding: 12px; border-radius: 8px; font-size: 0.9rem; outline: none;">
+      </div>
+    </div>
+
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 4px;">
+      <label style="display: flex; align-items: center; gap: 8px; font-size: 0.85rem; color: var(--text-main); cursor: pointer;">
+        <input type="checkbox" id="calcIntl" checked style="accent-color: var(--accent-blue); width: 16px; height: 16px;">
+        Intl Flight (Immigration)
+      </label>
+      <label style="display: flex; align-items: center; gap: 8px; font-size: 0.85rem; color: var(--text-main); cursor: pointer;">
+        <input type="checkbox" id="calcBags" checked style="accent-color: var(--accent-blue); width: 16px; height: 16px;">
+        Checked Baggage
+      </label>
+    </div>
+
+    <button type="button" id="calcSubmitBtn" class="card-btn" style="background: var(--accent-blue); color: #000; border: none; font-weight: 700; padding: 12px; border-radius: 8px; margin-top: 8px; cursor: pointer;">
+      Evaluate Connection Risk →
+    </button>
+  </form>
+
+  <div id="calcResult" style="display: none; margin-top: 20px; padding: 16px; border-radius: 8px; border: 1px solid var(--border-color);">
+    <div id="riskBadge" style="display: inline-block; font-weight: 800; font-size: 0.9rem; padding: 4px 10px; border-radius: 6px; margin-bottom: 8px;"></div>
+    <div id="riskTitle" style="font-size: 1.1rem; font-weight: 700; color: #fff; margin-bottom: 4px;"></div>
+    <p id="riskDesc" style="font-size: 0.85rem; color: var(--text-muted); line-height: 1.45;"></p>
+    <div id="riskBreakdown" style="margin-top: 12px; padding-top: 12px; border-top: 1px dashed var(--border-color); font-size: 0.8rem; color: var(--text-dim);"></div>
+  </div>
+</section>
 
     <!-- 2. Live Operations Board -->
     <section class="live-board-section">
@@ -136,5 +230,7 @@
 
   <script src="dmk-database.js"></script>
   <script src="../../scripts/pwa-status.js"></script>
+  <script src="../../connection-config.js"></script>
+  <script src="../../connection-calculator.js"></script>
 </body>
 </html>
