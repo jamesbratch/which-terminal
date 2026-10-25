@@ -94,6 +94,46 @@ body {
   font-weight: 500;
 }
 
+/* --- PWA Offline Badge Styles --- */
+
+/* --- Dark Theme PWA Offline Badge --- */
+.offline-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  margin-right: 0.5rem; /* Extra buffer space from right boundary */
+  border-radius: 20px;
+  font-size: 0.78rem;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  background-color: rgba(56, 189, 248, 0.1); /* Subtle dark-mode tint */
+  color: #38bdf8; /* Matches your logo's sky-blue color */
+  border: 1px solid rgba(56, 189, 248, 0.3);
+  backdrop-filter: blur(4px);
+  transition: all 0.3s ease;
+}
+
+.offline-badge .status-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background-color: #38bdf8;
+  box-shadow: 0 0 6px rgba(56, 189, 248, 0.6);
+}
+
+/* Offline state (Amber tint when disconnected) */
+.offline-badge.is-offline {
+  background-color: rgba(245, 158, 11, 0.12);
+  color: #fbbf24;
+  border-color: rgba(245, 158, 11, 0.35);
+}
+
+.offline-badge.is-offline .status-dot {
+  background-color: #fbbf24;
+  box-shadow: 0 0 6px rgba(251, 191, 36, 0.6);
+}
+
 /* Main Container with Mobile Side Margins */
 .page-wrapper {
   width: 100%;
