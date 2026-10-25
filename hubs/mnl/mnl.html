@@ -64,6 +64,59 @@
 <div id="instantCard" class="instant-result-card"></div>
 </section>
 
+<!-- 1b. Terminal Quick Summary Cards -->
+    <section class="hub-section">
+      <div class="section-header">
+        <h2>Terminal Quick Summary</h2>
+      </div>
+      <div class="terminal-summary-grid">
+        <!-- Terminal 1 -->
+        <div class="terminal-card">
+          <div class="card-header">
+            <h3>Terminal 1</h3>
+            <span class="card-tag warning">⚠️ Landside Transfer Only</span>
+          </div>
+          <p class="card-role"><strong>Primary Role:</strong> Legacy Foreign & Int'l Hub</p>
+          <p class="card-transit"><strong>Transit Note:</strong> Requires shuttle or taxi via public roads (no airside walkway).</p>
+          <p class="card-highlight">Mainly PAL Int'l, AirAsia Int'l & major foreign carriers.</p>
+        </div>
+
+        <!-- Terminal 2 -->
+        <div class="terminal-card">
+          <div class="card-header">
+            <h3>Terminal 2</h3>
+            <span class="card-tag info">💡 Strictly Domestic</span>
+          </div>
+          <p class="card-role"><strong>Primary Role:</strong> Domestic Terminal</p>
+          <p class="card-transit"><strong>Transit Note:</strong> 10–15 mins from T1 via road shuttle or Grab/taxi.</p>
+          <p class="card-highlight">Exclusively handles PAL Domestic & AirAsia Domestic flights.</p>
+        </div>
+
+        <!-- Terminal 3 -->
+        <div class="terminal-card">
+          <div class="card-header">
+            <h3>Terminal 3</h3>
+            <span class="card-tag success">✓ Major Hub / Walkway</span>
+          </div>
+          <p class="card-role"><strong>Primary Role:</strong> Cebu Pacific Hub & Major Int'l</p>
+          <p class="card-transit"><strong>Transit Note:</strong> Direct access via Runway Manila footbridge to Newport World.</p>
+          <p class="card-highlight">Main hub for Cebu Pacific (Int'l/Dom) & key international airlines.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 1c. Self-Transfer Risk Calculator -->
+    <section class="hub-section calculator-section">
+      <div class="section-header">
+        <h2>Self-Transfer Risk Calculator</h2>
+        <p>Estimate minimum layover time and connection risk for self-transfers at NAIA.</p>
+      </div>
+      
+      <div id="calculator-container">
+        <!-- Calculator Form UI rendered via JS -->
+      </div>
+    </section>
+
    <!-- 2. Live Operations Board (Prominent near top) -->
 <section class="live-board-section">
   <div class="section-header">
@@ -138,5 +191,7 @@
 
   <script src="mnl-database.js"></script>
   <script src="../../scripts/pwa-status.js"></script>
+  <script src="../../connection-config.js"></script>
+  <script src="../../connection-calculator.js"></script>
 </body>
 </html>
