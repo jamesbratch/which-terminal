@@ -7,6 +7,7 @@ const ASSETS_TO_CACHE = [
   '/style.css',
   '/connection-calculator.js',
   '/manifest.json',
+  'scripts/pwa-status.js',
 
   // Clean Hub & Static Routes
   '/mnl',

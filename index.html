@@ -208,6 +208,8 @@
   <script src="hubs/dmk/dmk-database.js"></script>
   <script src="connection-config.js"></script>
   <script src="connection-calculator.js"></script>
+  
+  <script src="scripts/pwa-status.js"></script>
 
 
   <!-- Global Master Index Search Script -->
@@ -306,32 +308,6 @@
           .catch(err => console.error('Service Worker registration failed:', err));
       });
     }
-
-    
-    document.addEventListener('DOMContentLoaded', () => {
-  const statusBadge = document.getElementById('pwa-status-badge');
-  const statusText = statusBadge?.querySelector('.status-text');
-
-  if (!statusBadge) return;
-
-  function updateOnlineStatus() {
-    if (navigator.onLine) {
-      statusBadge.classList.remove('is-offline');
-      statusBadge.classList.add('online');
-      if (statusText) statusText.textContent = '✓ Works Offline';
-    } else {
-      statusBadge.classList.remove('online');
-      statusBadge.classList.add('is-offline');
-      if (statusText) statusText.textContent = '⚡ Offline Mode Active';
-    }
-  }
-
-  // Initial check & network change listeners
-  updateOnlineStatus();
-  window.addEventListener('online', updateOnlineStatus);
-  window.addEventListener('offline', updateOnlineStatus);
-});
-
   </script>
 </body>
 </html>
