@@ -4,8 +4,12 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="icon" type="image/x-icon" href="assets/favicon.png">
-  <title>WhichTerminal.com — Southeast Asia Airport Terminal Guide</title>
   <link rel="stylesheet" href="style.css">
+  
+  <title>WhichTerminal.com — Southeast Asia Airport Terminal Guide</title>
+  <meta name="description" content="Verified airline terminal listings, transfer logistics, and self-transfer connection risk calculator for Manila NAIA, Bangkok BKK/DMK, and Kuala Lumpur KUL.">
+  <meta name="keywords" content="airport terminals, self transfer risk, manila naia terminals, bangkok suvarnabhumi, don mueang, klia1 klia2">
+  <link rel="canonical" href="https://whichterminal.com/">
 </head>
 <body>
 
@@ -197,10 +201,32 @@
   <script src="hubs/mnl/mnl-database.js"></script>
   <script src="hubs/bkk/bkk-database.js"></script>
   <script src="hubs/dmk/dmk-database.js"></script>
+  <script src="connection-config.js"></script>
   <script src="connection-calculator.js"></script>
+
 
   <!-- Global Master Index Search Script -->
   <script>
+    // Helper function to prevent XSS attacks
+    function escapeHTML(str) {
+      if (!str) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+
+    // Debounce helper to optimize typing performance
+    function debounce(func, delay = 150) {
+      let timeout;
+      return (...args) => {
+        clearTimeout(timeout);
+        timeout = setTimeout(() => func.apply(this, args), delay);
+      };
+    }
+
     document.addEventListener('DOMContentLoaded', () => {
       const MASTER_INDEX = [
         ...(window.MNL_AIRLINES || []),
@@ -215,7 +241,8 @@
 
       instantCard.style.display = 'none';
 
-      globalSearch.addEventListener('input', (e) => {
+      // Wrapped inside the debounce function
+      globalSearch.addEventListener('input', debounce((e) => {
         const query = e.target.value.toLowerCase().trim();
         
         if (query.length < 2) {
@@ -234,17 +261,17 @@
             <div class="instant-result-item" style="margin-bottom: 14px; padding-bottom: 14px; border-bottom: 1px solid var(--border-color, #334155);">
               <div style="display: flex; justify-content: space-between; align-items: flex-start;">
                 <div>
-                  <div class="instant-title" style="font-weight: 600; color: #f8fafc; font-size: 1rem;">${match.name}</div>
-                  <div class="instant-terminal" style="color: var(--accent-blue, #38bdf8); font-weight: 500; font-size: 0.9rem; margin-top: 2px;">
-                    ${match.hubName || 'Airport Hub'} — ${match.terminal}
+                  <div class="instant-title" style="font-weight: 600; color: #f8fafc; font-size: 1rem;">${escapeHTML(match.name)}</div>
+                  <div class="instant-terminal" style="color: #38bdf8; font-weight: 500; font-size: 0.9rem; margin-top: 2px;">
+                    ${escapeHTML(match.hubName || 'Airport Hub')} — ${escapeHTML(match.terminal)}
                   </div>
                 </div>
-                <span class="iata-code" style="background: #1e293b; padding: 2px 8px; border-radius: 4px; font-size: 0.85rem; color: #94a3b8; font-weight: 600;">${match.code}</span>
+                <span class="iata-code" style="background: #1e293b; padding: 2px 8px; border-radius: 4px; font-size: 0.85rem; color: #94a3b8; font-weight: 600;">${escapeHTML(match.code)}</span>
               </div>
-              <p class="instant-notes" style="color: var(--text-muted, #94a3b8); font-size: 0.85rem; margin-top: 6px; margin-bottom: 8px; line-height: 1.4;">${match.notes || ''}</p>
+              <p class="instant-notes" style="color: #94a3b8; font-size: 0.85rem; margin-top: 6px; margin-bottom: 8px; line-height: 1.4;">${escapeHTML(match.notes || '')}</p>
               <div>
-                <a href="${match.link || '#'}" style="color: var(--accent-blue, #38bdf8); font-size: 0.85rem; font-weight: 600; text-decoration: none;">
-                  Open ${match.hubName || 'Full'} Directory →
+                <a href="${escapeHTML(match.link || '#')}" style="color: #38bdf8 !important; font-size: 0.85rem; font-weight: 600; text-decoration: none;">
+                  Open ${escapeHTML(match.hubName || 'Full')} Directory →
                 </a>
               </div>
             </div>
@@ -261,7 +288,7 @@
         } else {
           instantCard.style.display = 'none';
         }
-      });
+      }, 150));
     });
   </script>
 
