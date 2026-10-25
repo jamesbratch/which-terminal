@@ -45,12 +45,20 @@
   <div class="page-wrapper">
     <!-- Header -->
     <header class="hero-header">
-      <h1>Manila NAIA Terminal Finder</h1>
-      <p class="hero-subtext">Verified airline terminal mappings for Ninoy Aquino International Airport.</p>
-      
-      <div class="verified-meta">
-        <span>✓</span> Data Verified: October 2026 Schedule
-      </div>
+  <h1>Manila NAIA Terminal Guide</h1>
+  <p class="hero-subtext">Verified terminal directory, live flight tracking, and inter-terminal connection tools for Ninoy Aquino International Airport (MNL).</p>
+
+  <div class="hero-feature-tags" style="display: flex; gap: 8px; flex-wrap: wrap; margin: 12px 0 16px 0;">
+    <span style="background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); color: #cbd5e1; font-size: 0.78rem; padding: 4px 10px; border-radius: 20px;">🔍 Airline Lookup</span>
+    <span style="background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); color: #cbd5e1; font-size: 0.78rem; padding: 4px 10px; border-radius: 20px;">⚡ Self-Transfer Calculator</span>
+    <span style="background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); color: #cbd5e1; font-size: 0.78rem; padding: 4px 10px; border-radius: 20px;">📡 Live Departures</span>
+    <span style="background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); color: #cbd5e1; font-size: 0.78rem; padding: 4px 10px; border-radius: 20px;">🚌 Transit Logistics</span>
+  </div>
+  
+  <div class="verified-meta">
+    <span>✓</span> Data Verified: October 2026 Schedule
+  </div>
+</header>
     </header>
 
  
@@ -62,6 +70,113 @@
   </div>
   <!-- Search Result Card Wrapper -->
 <div id="instantCard" class="instant-result-card"></div>
+</section>
+
+<!-- 1b. Terminal Quick Summary Cards -->
+    <section class="hub-section">
+      <div class="section-header">
+        <h2>Terminal Quick Summary</h2>
+      </div>
+      <div class="terminal-summary-grid">
+        <!-- Terminal 1 -->
+        <div class="terminal-card">
+          <div class="card-header">
+            <h3>Terminal 1</h3>
+            <span class="card-tag warning">⚠️ Landside Transfer Only</span>
+          </div>
+          <p class="card-role"><strong>Primary Role:</strong> Legacy Foreign & Int'l Hub</p>
+          <p class="card-transit"><strong>Transit Note:</strong> Requires shuttle or taxi via public roads (no airside walkway).</p>
+          <p class="card-highlight">Mainly PAL Int'l, AirAsia Int'l & major foreign carriers.</p>
+        </div>
+
+        <!-- Terminal 2 -->
+        <div class="terminal-card">
+          <div class="card-header">
+            <h3>Terminal 2</h3>
+            <span class="card-tag info">💡 Strictly Domestic</span>
+          </div>
+          <p class="card-role"><strong>Primary Role:</strong> Domestic Terminal</p>
+          <p class="card-transit"><strong>Transit Note:</strong> 10–15 mins from T1 via road shuttle or Grab/taxi.</p>
+          <p class="card-highlight">Exclusively handles PAL Domestic & AirAsia Domestic flights.</p>
+        </div>
+
+        <!-- Terminal 3 -->
+        <div class="terminal-card">
+          <div class="card-header">
+            <h3>Terminal 3</h3>
+            <span class="card-tag success">✓ Major Hub / Walkway</span>
+          </div>
+          <p class="card-role"><strong>Primary Role:</strong> Cebu Pacific Hub & Major Int'l</p>
+          <p class="card-transit"><strong>Transit Note:</strong> Direct access via Runway Manila footbridge to Newport World.</p>
+          <p class="card-highlight">Main hub for Cebu Pacific (Int'l/Dom) & key international airlines.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 1c. Self-Transfer Risk Calculator -->
+<section class="calculator-container" style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 20px; margin-top: 32px; margin-bottom: 32px;">
+  <div style="margin-bottom: 16px;">
+    <h2 style="font-size: 1.25rem; font-weight: 800; color: #fff; margin-bottom: 4px;">⚡ Self-Transfer Risk Calculator</h2>
+    <p style="font-size: 0.85rem; color: var(--text-muted);">Select your connecting airlines and layover window to calculate real-world NAIA transit risk.</p>
+  </div>
+
+  <form id="riskCalcForm" style="display: flex; flex-direction: column; gap: 14px;">
+    <!-- Hidden / Locked Hub Selector for Manila -->
+    <input type="hidden" id="calcHub" value="MNL">
+
+    <!-- Incoming Airline Dropdown -->
+    <div>
+      <label style="display: block; font-size: 0.8rem; font-weight: 600; color: var(--text-muted); margin-bottom: 6px;">INCOMING AIRLINE</label>
+      <select id="calcInAirline" style="width: 100%; background: var(--bg-input); border: 1px solid var(--border-color); color: #fff; padding: 12px; border-radius: 8px; font-size: 0.9rem; outline: none;">
+        <option value="">-- Loading Airlines... --</option>
+      </select>
+    </div>
+
+    <!-- Outgoing Airline Dropdown -->
+    <div>
+      <label style="display: block; font-size: 0.8rem; font-weight: 600; color: var(--text-muted); margin-bottom: 6px;">OUTGOING AIRLINE</label>
+      <select id="calcOutAirline" style="width: 100%; background: var(--bg-input); border: 1px solid var(--border-color); color: #fff; padding: 12px; border-radius: 8px; font-size: 0.9rem; outline: none;">
+        <option value="">-- Loading Airlines... --</option>
+      </select>
+    </div>
+
+    <!-- Layover Window Inputs -->
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+      <div>
+        <label style="display: block; font-size: 0.8rem; font-weight: 600; color: var(--text-muted); margin-bottom: 6px;">LAYOVER HOURS</label>
+        <input type="number" id="calcHours" min="0" max="24" value="2" placeholder="Hours" style="width: 100%; background: var(--bg-input); border: 1px solid var(--border-color); color: #fff; padding: 12px; border-radius: 8px; font-size: 0.9rem; outline: none;">
+      </div>
+      <div>
+        <label style="display: block; font-size: 0.8rem; font-weight: 600; color: var(--text-muted); margin-bottom: 6px;">MINUTES</label>
+        <input type="number" id="calcMins" min="0" max="59" value="30" placeholder="Mins" style="width: 100%; background: var(--bg-input); border: 1px solid var(--border-color); color: #fff; padding: 12px; border-radius: 8px; font-size: 0.9rem; outline: none;">
+      </div>
+    </div>
+
+    <!-- Toggles -->
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 4px;">
+      <label style="display: flex; align-items: center; gap: 8px; font-size: 0.85rem; color: var(--text-main); cursor: pointer;">
+        <input type="checkbox" id="calcIntl" checked style="accent-color: var(--accent-blue); width: 16px; height: 16px;">
+        Intl Flight (Immigration)
+      </label>
+      <label style="display: flex; align-items: center; gap: 8px; font-size: 0.85rem; color: var(--text-main); cursor: pointer;">
+        <input type="checkbox" id="calcBags" checked style="accent-color: var(--accent-blue); width: 16px; height: 16px;">
+        Checked Baggage
+      </label>
+    </div>
+
+    <!-- Submit Button -->
+    <button type="button" id="calcSubmitBtn" class="card-btn" style="background: var(--accent-blue); color: #000; border: none; font-weight: 700; padding: 12px; border-radius: 8px; margin-top: 8px; cursor: pointer;">
+      Evaluate Connection Risk →
+    </button>
+  </form>
+
+  <!-- Risk Result Display Area -->
+  <div id="calcResult" style="display: none; margin-top: 20px; padding: 16px; border-radius: 8px; border: 1px solid var(--border-color);">
+    <div id="riskBadge" style="display: inline-block; font-weight: 800; font-size: 0.9rem; padding: 4px 10px; border-radius: 6px; margin-bottom: 8px;"></div>
+    <div id="riskTitle" style="font-size: 1.1rem; font-weight: 700; color: #fff; margin-bottom: 4px;"></div>
+    <p id="riskDesc" style="font-size: 0.85rem; color: var(--text-muted); line-height: 1.45;"></p>
+    <div id="riskBreakdown" style="margin-top: 12px; padding-top: 12px; border-top: 1px dashed var(--border-color); font-size: 0.8rem; color: var(--text-dim);"></div >
+  </div>
 </section>
 
    <!-- 2. Live Operations Board (Prominent near top) -->
@@ -138,5 +253,7 @@
 
   <script src="mnl-database.js"></script>
   <script src="../../scripts/pwa-status.js"></script>
+  <script src="../../connection-config.js"></script>
+  <script src="../../connection-calculator.js"></script>
 </body>
 </html>
