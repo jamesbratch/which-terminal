@@ -106,43 +106,70 @@
     </section>
 
     <!-- 1c. Self-Transfer Risk Calculator -->
-    <section class="hub-section calculator-section">
-      <div class="section-header">
-        <h2>Self-Transfer Risk Calculator</h2>
-        <p>Estimate minimum layover time and connection risk for self-transfers at NAIA.</p>
+<section class="calculator-container" style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 20px; margin-top: 32px; margin-bottom: 32px;">
+  <div style="margin-bottom: 16px;">
+    <h2 style="font-size: 1.25rem; font-weight: 800; color: #fff; margin-bottom: 4px;">⚡ Self-Transfer Risk Calculator</h2>
+    <p style="font-size: 0.85rem; color: var(--text-muted);">Select your connecting airlines and layover window to calculate real-world NAIA transit risk.</p>
+  </div>
+
+  <form id="riskCalcForm" style="display: flex; flex-direction: column; gap: 14px;">
+    <!-- Hidden / Locked Hub Selector for Manila -->
+    <input type="hidden" id="calcHub" value="MNL">
+
+    <!-- Incoming Airline Dropdown -->
+    <div>
+      <label style="display: block; font-size: 0.8rem; font-weight: 600; color: var(--text-muted); margin-bottom: 6px;">INCOMING AIRLINE</label>
+      <select id="calcInAirline" style="width: 100%; background: var(--bg-input); border: 1px solid var(--border-color); color: #fff; padding: 12px; border-radius: 8px; font-size: 0.9rem; outline: none;">
+        <option value="">-- Loading Airlines... --</option>
+      </select>
+    </div>
+
+    <!-- Outgoing Airline Dropdown -->
+    <div>
+      <label style="display: block; font-size: 0.8rem; font-weight: 600; color: var(--text-muted); margin-bottom: 6px;">OUTGOING AIRLINE</label>
+      <select id="calcOutAirline" style="width: 100%; background: var(--bg-input); border: 1px solid var(--border-color); color: #fff; padding: 12px; border-radius: 8px; font-size: 0.9rem; outline: none;">
+        <option value="">-- Loading Airlines... --</option>
+      </select>
+    </div>
+
+    <!-- Layover Window Inputs -->
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+      <div>
+        <label style="display: block; font-size: 0.8rem; font-weight: 600; color: var(--text-muted); margin-bottom: 6px;">LAYOVER HOURS</label>
+        <input type="number" id="calcHours" min="0" max="24" value="2" placeholder="Hours" style="width: 100%; background: var(--bg-input); border: 1px solid var(--border-color); color: #fff; padding: 12px; border-radius: 8px; font-size: 0.9rem; outline: none;">
       </div>
-      
-      <div id="calculator-container" class="calculator-card">
-        <form id="calcForm" class="calc-form">
-          <div class="form-group">
-            <label for="arrTerminal">Arriving Terminal</label>
-            <select id="arrTerminal">
-              <option value="T1">Terminal 1</option>
-              <option value="T2">Terminal 2</option>
-              <option value="T3">Terminal 3</option>
-            </select>
-          </div>
-
-          <div class="form-group">
-            <label for="depTerminal">Departing Terminal</label>
-            <select id="depTerminal">
-              <option value="T1">Terminal 1</option>
-              <option value="T2">Terminal 2</option>
-              <option value="T3">Terminal 3</option>
-            </select>
-          </div>
-
-          <div class="form-group">
-            <label for="layoverTime">Layover Time (Hours)</label>
-            <input type="number" id="layoverTime" min="1" max="24" value="3" step="0.5">
-          </div>
-
-          <button type="submit" class="calc-btn">Calculate Layover Risk</button>
-        </form>
-
-        <div id="calcResult" class="calc-result-box" style="display:none;"></div>
+      <div>
+        <label style="display: block; font-size: 0.8rem; font-weight: 600; color: var(--text-muted); margin-bottom: 6px;">MINUTES</label>
+        <input type="number" id="calcMins" min="0" max="59" value="30" placeholder="Mins" style="width: 100%; background: var(--bg-input); border: 1px solid var(--border-color); color: #fff; padding: 12px; border-radius: 8px; font-size: 0.9rem; outline: none;">
       </div>
-    </section>
+    </div>
+
+    <!-- Toggles -->
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 4px;">
+      <label style="display: flex; align-items: center; gap: 8px; font-size: 0.85rem; color: var(--text-main); cursor: pointer;">
+        <input type="checkbox" id="calcIntl" checked style="accent-color: var(--accent-blue); width: 16px; height: 16px;">
+        Intl Flight (Immigration)
+      </label>
+      <label style="display: flex; align-items: center; gap: 8px; font-size: 0.85rem; color: var(--text-main); cursor: pointer;">
+        <input type="checkbox" id="calcBags" checked style="accent-color: var(--accent-blue); width: 16px; height: 16px;">
+        Checked Baggage
+      </label>
+    </div>
+
+    <!-- Submit Button -->
+    <button type="button" id="calcSubmitBtn" class="card-btn" style="background: var(--accent-blue); color: #000; border: none; font-weight: 700; padding: 12px; border-radius: 8px; margin-top: 8px; cursor: pointer;">
+      Evaluate Connection Risk →
+    </button>
+  </form>
+
+  <!-- Risk Result Display Area -->
+  <div id="calcResult" style="display: none; margin-top: 20px; padding: 16px; border-radius: 8px; border: 1px solid var(--border-color);">
+    <div id="riskBadge" style="display: inline-block; font-weight: 800; font-size: 0.9rem; padding: 4px 10px; border-radius: 6px; margin-bottom: 8px;"></div>
+    <div id="riskTitle" style="font-size: 1.1rem; font-weight: 700; color: #fff; margin-bottom: 4px;"></div>
+    <p id="riskDesc" style="font-size: 0.85rem; color: var(--text-muted); line-height: 1.45;"></p>
+    <div id="riskBreakdown" style="margin-top: 12px; padding-top: 12px; border-top: 1px dashed var(--border-color); font-size: 0.8rem; color: var(--text-dim);"></div >
+  </div>
+</section>
 
    <!-- 2. Live Operations Board (Prominent near top) -->
 <section class="live-board-section">
