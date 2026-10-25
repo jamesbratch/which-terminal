@@ -28,6 +28,92 @@ function populateAirlineDropdowns() {
   if (!hubSelect || !inSelect || !outSelect) return;
 
   const selectedHub = hubSelect.value;
+  const isHiddenHub = (hubSelect.type === 'hidden');
+
+  inSelect.innerHTML = '';
+  outSelect.innerHTML = '';
+
+  // 1. COMBINED BKK + DMK HANDLING (Home Page / Cross-Hub Selectors)
+  if (selectedHub === 'BKK' && !isHiddenHub) {
+    const bkkAirlines = window.bkkDatabase || [];
+    const dmkAirlines = window.dmkDatabase || [];
+
+    if (bkkAirlines.length === 0 && dmkAirlines.length === 0) {
+      renderEmptyOption(inSelect, outSelect);
+      return;
+    }
+
+    // Combine into indexed datasets tagged with airport codes
+    const combinedAirlines = [
+      ...bkkAirlines.map(item => ({ ...item, airport: 'BKK' })),
+      ...dmkAirlines.map(item => ({ ...item, airport: 'DMK' }))
+    ];
+
+    // Cache combined dataset on window so risk evaluator reads correct indices
+    window.combinedBangkokDatabase = combinedAirlines;
+
+    // Create Optgroups for Visual Split on Home Page
+    const bkkGroupIn = document.createElement('optgroup');
+    bkkGroupIn.label = "✈️ Suvarnabhumi Airport (BKK)";
+    const bkkGroupOut = document.createElement('optgroup');
+    bkkGroupOut.label = "✈️ Suvarnabhumi Airport (BKK)";
+
+    const dmkGroupIn = document.createElement('optgroup');
+    dmkGroupIn.label = "✈️ Don Mueang Airport (DMK)";
+    const dmkGroupOut = document.createElement('optgroup');
+    dmkGroupOut.label = "✈️ Don Mueang Airport (DMK)";
+
+    combinedAirlines.forEach((airline, index) => {
+      const optText = `[${airline.airport}] ${airline.name} (${airline.code}) — ${airline.terminal}`;
+      
+      const optIn = new Option(optText, index);
+      const optOut = new Option(optText, index);
+
+      if (airline.airport === 'BKK') {
+        bkkGroupIn.appendChild(optIn);
+        bkkGroupOut.appendChild(optOut);
+      } else {
+        dmkGroupIn.appendChild(optIn);
+        dmkGroupOut.appendChild(optOut);
+      }
+    });
+
+    inSelect.appendChild(bkkGroupIn);
+    inSelect.appendChild(dmkGroupIn);
+    outSelect.appendChild(bkkGroupOut);
+    outSelect.appendChild(dmkGroupOut);
+
+  } else {
+    // 2. STANDARD & SINGLE-HUB PAGE HANDLING (e.g. BKK Page, DMK Page, MNL Page)
+    const airlines = (typeof getDatabaseForHub === 'function') 
+      ? getDatabaseForHub(selectedHub) 
+      : (selectedHub === 'BKK' ? window.bkkDatabase : 
+         selectedHub === 'DMK' ? window.dmkDatabase : 
+         window.mnlDatabase);
+
+    if (!airlines || airlines.length === 0) {
+      renderEmptyOption(inSelect, outSelect);
+      return;
+    }
+
+    // Single-hub clean dropdown (No [BKK]/[DMK] tags or optgroups)
+    airlines.forEach((airline, index) => {
+      const optText = `${airline.name} (${airline.code}) — ${airline.terminal}`;
+      inSelect.appendChild(new Option(optText, index));
+      outSelect.appendChild(new Option(optText, index));
+    });
+  }
+}
+
+/*
+function populateAirlineDropdowns() {
+  const hubSelect = document.getElementById('calcHub');
+  const inSelect = document.getElementById('calcInAirline');
+  const outSelect = document.getElementById('calcOutAirline');
+
+  if (!hubSelect || !inSelect || !outSelect) return;
+
+  const selectedHub = hubSelect.value;
 
   inSelect.innerHTML = '';
   outSelect.innerHTML = '';
@@ -97,6 +183,7 @@ function populateAirlineDropdowns() {
     });
   }
 }
+*/
 
 function renderEmptyOption(inSelect, outSelect) {
   const emptyOpt = document.createElement('option');
