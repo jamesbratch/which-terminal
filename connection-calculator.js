@@ -230,17 +230,3 @@ document.addEventListener('DOMContentLoaded', () => {
     calcBtn.addEventListener('click', evaluateConnectionRisk);
   }
 });
-
-// Auto-populate airline options on page load if hub value is pre-set
-document.addEventListener('DOMContentLoaded', () => {
-  const hubSelect = document.getElementById('calcHub');
-  if (hubSelect && hubSelect.value) {
-    // Force call your population function (adjust function name if needed)
-    if (typeof populateAirlineDropdowns === 'function') {
-      populateAirlineDropdowns(hubSelect.value);
-    } else {
-      // Or trigger a change event if listener is attached
-      hubSelect.dispatchEvent(new Event('change'));
-    }
-  }
-});
