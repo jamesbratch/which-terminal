@@ -27,6 +27,7 @@ const dmkDatabase = [
 
 // Dual global exposure for both DMK UI and Global Homepage Search
 window.dmkDatabase = dmkDatabase;
+window.DMK_DATABASE = dmkDatabase;
 window.DMK_AIRLINES = dmkDatabase;
 
 // Page UI Execution (Only runs on dmk.html where directory elements exist)
