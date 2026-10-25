@@ -144,6 +144,63 @@ function renderEmptyOption(inSelect, outSelect) {
 function evaluateConnectionRisk() {
   const hubSelect = document.getElementById('calcHub');
   const selectedHubCode = hubSelect ? hubSelect.value : 'MNL';
+  const isHiddenHub = hubSelect && hubSelect.type === 'hidden';
+  
+  const inVal = document.getElementById('calcInAirline').value;
+  const outVal = document.getElementById('calcOutAirline').value;
+  const hours = parseInt(document.getElementById('calcHours').value) || 0;
+  const mins = parseInt(document.getElementById('calcMins').value) || 0;
+  
+  let isIntl = document.getElementById('calcIntl').checked;
+  const hasBags = document.getElementById('calcBags').checked;
+
+  // Robust database resolution for DMK, BKK, MNL, and Home Page
+  let airlines = [];
+  if (selectedHubCode === 'BKK' && !isHiddenHub && window.combinedBangkokDatabase) {
+    airlines = window.combinedBangkokDatabase;
+  } else if (selectedHubCode === 'DMK') {
+    airlines = window.dmkDatabase || window.DMK_DATABASE || window.DMK_AIRLINES;
+  } else if (selectedHubCode === 'BKK') {
+    airlines = window.bkkDatabase || window.BKK_DATABASE;
+  } else if (typeof getDatabaseForHub === 'function') {
+    airlines = getDatabaseForHub(selectedHubCode);
+  } else {
+    airlines = window.mnlDatabase || window.MNL_DATABASE || [];
+  }
+  
+  const incomingAirline = airlines ? airlines[parseInt(inVal, 10)] : null;
+  const outgoingAirline = airlines ? airlines[parseInt(outVal, 10)] : null;
+
+  if (!incomingAirline || !outgoingAirline) {
+    alert("Please select valid incoming and outgoing airlines.");
+    return;
+  }
+
+  const inAirport = incomingAirline.airport || selectedHubCode;
+  const outAirport = outgoingAirline.airport || selectedHubCode;
+
+  const transitConfig = window.TRANSIT_CONFIG || {};
+  const hubConfig = transitConfig[selectedHubCode] || transitConfig['MNL'];
+
+  let ruleKey = "SAME_TERMINAL";
+  let transferName = "Same Terminal Transfer";
+  let activeRule = hubConfig.sameTerminal;
+
+  if (inAirport !== outAirport) {
+    ruleKey = "CROSS_AIRPORT";
+    transferName = `Cross-Airport Transfer (${inAirport} ↔ ${outAirport})`;
+    activeRule = hubConfig.crossAirport;
+    isIntl = true;
+  } else if (incomingAirline.terminal !== outgoingAirline.terminal) {
+    ruleKey = "CROSS_TERMINAL";
+    transferName = "Cross-Terminal Transfer";
+    activeRule = hubConfig.crossTerminal;
+  } 
+
+/*
+function evaluateConnectionRisk() {
+  const hubSelect = document.getElementById('calcHub');
+  const selectedHubCode = hubSelect ? hubSelect.value : 'MNL';
   
   const inVal = document.getElementById('calcInAirline').value;
   const outVal = document.getElementById('calcOutAirline').value;
@@ -183,6 +240,7 @@ function evaluateConnectionRisk() {
     transferName = "Cross-Terminal Transfer";
     activeRule = hubConfig.crossTerminal;
   }
+  */
 
   const transitBuffer = activeRule.transitMins;
   const immigrationMins = activeRule.immigrationMins;
