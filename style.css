@@ -94,6 +94,39 @@ body {
   font-weight: 500;
 }
 
+/* --- PWA Offline Badge Styles --- */
+.offline-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  background-color: #e0f2fe;
+  color: #0369a1;
+  border: 1px solid #bae6fd;
+  transition: all 0.3s ease;
+}
+
+.offline-badge .status-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background-color: #0284c7;
+}
+
+/* Offline state mode */
+.offline-badge.is-offline {
+  background-color: #fef3c7;
+  color: #b45309;
+  border-color: #fde68a;
+}
+
+.offline-badge.is-offline .status-dot {
+  background-color: #d97706;
+}
+
 /* Main Container with Mobile Side Margins */
 .page-wrapper {
   width: 100%;
