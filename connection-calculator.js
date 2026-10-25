@@ -83,6 +83,32 @@ function populateAirlineDropdowns() {
     outSelect.appendChild(bkkGroupOut);
     outSelect.appendChild(dmkGroupOut);
 
+} else {
+    // 2. STANDARD & SINGLE-HUB PAGE HANDLING (e.g. BKK Page, DMK Page, MNL Page)
+    let airlines = (typeof getDatabaseForHub === 'function') ? getDatabaseForHub(selectedHub) : null;
+
+    // Fallback if getDatabaseForHub returns null or empty array
+    if (!airlines || airlines.length === 0) {
+      if (selectedHub === 'BKK') airlines = window.bkkDatabase || window.BKK_DATABASE;
+      else if (selectedHub === 'DMK') airlines = window.dmkDatabase || window.DMK_DATABASE || window.DMK_AIRLINES;
+      else if (selectedHub === 'MNL') airlines = window.mnlDatabase || window.MNL_DATABASE;
+    }
+
+    if (!airlines || airlines.length === 0) {
+      renderEmptyOption(inSelect, outSelect);
+      return;
+    }
+
+    // Single-hub clean dropdown (No [BKK]/[DMK] tags or optgroups)
+    airlines.forEach((airline, index) => {
+      const codeText = airline.code ? ` (${airline.code})` : '';
+      const optText = `${airline.name}${codeText} — ${airline.terminal}`;
+      inSelect.appendChild(new Option(optText, index));
+      outSelect.appendChild(new Option(optText, index));
+    });
+  }
+
+    /*
   } else {
     // 2. STANDARD & SINGLE-HUB PAGE HANDLING (e.g. BKK Page, DMK Page, MNL Page)
     const airlines = (typeof getDatabaseForHub === 'function') 
@@ -103,87 +129,8 @@ function populateAirlineDropdowns() {
       outSelect.appendChild(new Option(optText, index));
     });
   }
+  */
 }
-
-/*
-function populateAirlineDropdowns() {
-  const hubSelect = document.getElementById('calcHub');
-  const inSelect = document.getElementById('calcInAirline');
-  const outSelect = document.getElementById('calcOutAirline');
-
-  if (!hubSelect || !inSelect || !outSelect) return;
-
-  const selectedHub = hubSelect.value;
-
-  inSelect.innerHTML = '';
-  outSelect.innerHTML = '';
-
-  if (selectedHub === 'BKK') {
-    const bkkAirlines = window.bkkDatabase || [];
-    const dmkAirlines = window.dmkDatabase || [];
-
-    if (bkkAirlines.length === 0 && dmkAirlines.length === 0) {
-      renderEmptyOption(inSelect, outSelect);
-      return;
-    }
-
-    // Combine into indexed datasets tagged with airport codes
-    const combinedAirlines = [
-      ...bkkAirlines.map(item => ({ ...item, airport: 'BKK' })),
-      ...dmkAirlines.map(item => ({ ...item, airport: 'DMK' }))
-    ];
-
-    // Cache combined dataset on window so risk evaluator reads correct indices
-    window.combinedBangkokDatabase = combinedAirlines;
-
-    // Create Optgroups for Visual Split
-    const bkkGroupIn = document.createElement('optgroup');
-    bkkGroupIn.label = "✈️ Suvarnabhumi Airport (BKK)";
-    const bkkGroupOut = document.createElement('optgroup');
-    bkkGroupOut.label = "✈️ Suvarnabhumi Airport (BKK)";
-
-    const dmkGroupIn = document.createElement('optgroup');
-    dmkGroupIn.label = "✈️ Don Mueang Airport (DMK)";
-    const dmkGroupOut = document.createElement('optgroup');
-    dmkGroupOut.label = "✈️ Don Mueang Airport (DMK)";
-
-    combinedAirlines.forEach((airline, index) => {
-      const optText = `[${airline.airport}] ${airline.name} (${airline.code}) — ${airline.terminal}`;
-      
-      const optIn = new Option(optText, index);
-      const optOut = new Option(optText, index);
-
-      if (airline.airport === 'BKK') {
-        bkkGroupIn.appendChild(optIn);
-        bkkGroupOut.appendChild(optOut);
-      } else {
-        dmkGroupIn.appendChild(optIn);
-        dmkGroupOut.appendChild(optOut);
-      }
-    });
-
-    inSelect.appendChild(bkkGroupIn);
-    inSelect.appendChild(dmkGroupIn);
-    outSelect.appendChild(bkkGroupOut);
-    outSelect.appendChild(dmkGroupOut);
-
-  } else {
-    // Standard Hub Handling (e.g. MNL, KUL)
-    const airlines = getDatabaseForHub(selectedHub);
-
-    if (!airlines || airlines.length === 0) {
-      renderEmptyOption(inSelect, outSelect);
-      return;
-    }
-
-    airlines.forEach((airline, index) => {
-      const optText = `${airline.name} (${airline.code}) — ${airline.terminal}`;
-      inSelect.appendChild(new Option(optText, index));
-      outSelect.appendChild(new Option(optText, index));
-    });
-  }
-}
-*/
 
 function renderEmptyOption(inSelect, outSelect) {
   const emptyOpt = document.createElement('option');
