@@ -38,36 +38,46 @@ async function scrapeLiveNaiaMappings() {
   
   try {
     const page = await browser.newPage();
-    await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36');
+    await page.setUserAgent('Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36');
     await page.goto('https://newnaia.com.ph/flights/airline-information', { waitUntil: 'networkidle2', timeout: 40000 });
 
-    // Give the SPA a couple of seconds to render client-side tables
-    await new Promise(resolve => setTimeout(resolve, 3000));
+    // Wait explicitly for the page content to load
+    await new Promise(resolve => setTimeout(resolve, 4000));
 
     const liveMappings = await page.evaluate(() => {
       const map = {};
+      const fullText = document.body.innerText;
+      const lines = fullText.split('\n').map(l => l.trim()).filter(Boolean);
+
       let currentTerminal = "Terminal 1";
 
-      // Walk through all elements to detect terminal headers and associated airlines
-      const elements = document.querySelectorAll('h1, h2, h3, h4, th, td, li, p, div');
-      
-      elements.forEach(el => {
-        const text = el.innerText ? el.innerText.trim() : '';
-        const lowerText = text.toLowerCase();
+      for (let i = 0; i < lines.length; i++) {
+        const line = lines[i];
+        const lower = line.toLowerCase();
 
-        // Detect terminal headers
-        if (lowerText.includes('terminal 1')) currentTerminal = 'Terminal 1';
-        else if (lowerText.includes('terminal 2')) currentTerminal = 'Terminal 2';
-        else if (lowerText.includes('terminal 3')) currentTerminal = 'Terminal 3';
-        else if (lowerText.includes('terminal 4')) currentTerminal = 'Terminal 4';
+        // Track terminal header transitions
+        if (lower === 'terminal 1' || lower.includes('terminal 1')) {
+          currentTerminal = 'Terminal 1';
+          continue;
+        } else if (lower === 'terminal 2' || lower.includes('terminal 2')) {
+          currentTerminal = 'Terminal 2';
+          continue;
+        } else if (lower === 'terminal 3' || lower.includes('terminal 3')) {
+          currentTerminal = 'Terminal 3';
+          continue;
+        } else if (lower === 'terminal 4' || lower.includes('terminal 4')) {
+          currentTerminal = 'Terminal 4';
+          continue;
+        }
 
-        // If this element looks like an airline entry (e.g. inside list items or table cells)
-        if (el.tagName === 'LI' || el.tagName === 'TD' || el.classList.contains('airline')) {
-          if (text.length > 2 && !lowerText.includes('terminal') && !lowerText.includes('flight')) {
-            map[lowerText] = currentTerminal;
+        // Match airline lines like "Air Niugini (PX)" or "Cathay Pacific (CX)"
+        if (line.includes('(') && line.includes(')')) {
+          const airlineClean = line.split('(')[0].trim().toLowerCase();
+          if (airlineClean.length > 2) {
+            map[airlineClean] = currentTerminal;
           }
         }
-      });
+      }
 
       return map;
     });
