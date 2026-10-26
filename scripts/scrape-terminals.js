@@ -31,7 +31,7 @@ const MAX_SHARE = 0.85; // no single terminal may hold more than 85% of airlines
 
 // Kept as strings so the same patterns run inside the page and in Node.
 const AIRLINE_SRC = String.raw`^([A-Za-z][A-Za-z0-9&.'’\-\/ ]{1,59}?)\s*\(([A-Z0-9]{1,4})\)$`;
-const TERMINAL_SRC = String.raw`^(?:NAIA\s+)?Terminal\s*([1-4])$`;
+const TERMINAL_SRC = String.raw`^(?:NAIA\s+)?Terminal\s*([1-4])(?:\s*[-–:|]?\s*[A-Za-z ]{0,25})?$`;
 const JUNK_SRC = String.raw`gtag|window\.|dataLayer|function\s*\(|=>|[{};<>]|©|new naia infra|all rights reserved|cookie|privacy`;
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
@@ -128,6 +128,42 @@ async function expandCollapsed(page) {
   await sleep(500);
 }
 
+/** Prints a compact picture of the page structure to the log when validation fails. */
+async function diagnose(page) {
+  const info = await page.evaluate((AIRLINE_SRC) => {
+    const AIR = new RegExp(AIRLINE_SRC);
+    const norm = (s) => (s || '').replace(/\s+/g, ' ').trim();
+    const desc = (el) => {
+      const cls = typeof el.className === 'string' && el.className.trim()
+        ? '.' + el.className.trim().split(/\s+/).slice(0, 2).join('.') : '';
+      const role = el.getAttribute('role') ? `[role=${el.getAttribute('role')}]` : '';
+      const hid = el.getAttribute('aria-hidden') === 'true' ? '[aria-hidden]' : '';
+      return `${el.tagName.toLowerCase()}${el.id ? '#' + el.id : ''}${cls}${role}${hid}`;
+    };
+    const chain = (el) => {
+      const out = [];
+      for (let n = el; n && n !== document.body && out.length < 7; n = n.parentElement) out.push(desc(n));
+      return out.join(' < ');
+    };
+    const every = Array.from(document.body.querySelectorAll('*'));
+    const airlineLeaves = every.filter((e) => !e.children.length && AIR.test(norm(e.textContent)));
+    const termEls = every.filter((e) => {
+      const t = norm(e.textContent);
+      return t.length <= 60 && /terminal\s*[1-4]/i.test(t) && ![...e.children].some((c) => norm(c.textContent) === t);
+    });
+    return {
+      title: document.title,
+      iframes: document.querySelectorAll('iframe').length,
+      shadowHosts: every.filter((e) => e.shadowRoot).length,
+      airlineLeafCount: airlineLeaves.length,
+      airlineSamples: airlineLeaves.slice(0, 4).map((e) => ({ text: norm(e.textContent), chain: chain(e) })),
+      terminalEls: termEls.slice(0, 15).map((e) => ({ text: norm(e.textContent), chain: chain(e) })),
+      bodyHead: norm(document.body.innerText).slice(0, 300),
+    };
+  }, AIRLINE_SRC);
+  console.error('--- DIAGNOSTIC ---\n' + JSON.stringify(info, null, 2) + '\n--- END DIAGNOSTIC ---');
+}
+
 async function scrapeOnce(browser) {
   const page = await browser.newPage();
   try {
@@ -220,6 +256,7 @@ async function scrape() {
         result = buildAndValidate(s.rows);
         if (!result.problems.length) { await page.close(); break; }
         lastErr = new Error(result.problems.join(' '));
+        if (attempt === 1) await diagnose(page);
         fs.mkdirSync(DEBUG_DIR, { recursive: true });
         await page.screenshot({ path: path.join(DEBUG_DIR, `attempt-${attempt}.png`), fullPage: true });
         fs.writeFileSync(path.join(DEBUG_DIR, `attempt-${attempt}.html`), await page.content());
