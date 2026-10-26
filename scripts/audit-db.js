@@ -125,8 +125,9 @@ async function runAudit() {
           const sharedCode = code && codeCounts[code] > 1;
           const qualifier = record.name.includes('(') && norm(record.name) !== norm(hit.name);
           if (sharedCode || qualifier) {
-            // e.g. separate domestic/international entries: one live row can't decide both
-            review.push({
+            // e.g. separate domestic/international entries: one live row can't decide both.
+            // Only worth a human's attention when the terminals actually disagree.
+            if (norm(record.terminal) !== norm(hit.terminal)) review.push({
               airline: record.name,
               dbTerminal: record.terminal,
               liveName: hit.name,
