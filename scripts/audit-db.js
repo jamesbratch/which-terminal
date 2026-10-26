@@ -35,14 +35,9 @@ async function runAudit() {
   // Accurate baseline reference maps for each airport database
   const masterOfficialMap = {
     "mnl": {
-      "philippine airlines (international)": "Terminal 1",
-      "philippine airlines (domestic)": "Terminal 2",
-      "pal express (domestic)": "Terminal 2",
-      "airasia philippines (international)": "Terminal 1",
-      "airasia philippines (domestic)": "Terminal 2",
-      "cebu pacific": "Terminal 3",
-      "cathay pacific": "Terminal 3",
-      "emirates": "Terminal 3"
+      "airportName": "Manila Ninoy Aquino International Airport",
+      "sourceUrl": "https://newnaia.com.ph/flights/airline-information",
+      "type": "dynamic_scraper"
     },
     // Bangkok Suvarnabhumi (BKK)
     "bkk": {
