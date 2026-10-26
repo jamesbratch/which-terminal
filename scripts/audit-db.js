@@ -37,35 +37,66 @@ async function scrapeLiveNaiaMappings() {
     const page = await browser.newPage();
     await page.setUserAgent('Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36');
     await page.goto('https://newnaia.com.ph/flights/airline-information', { waitUntil: 'networkidle2', timeout: 40000 });
-    await new Promise(resolve => setTimeout(resolve, 5000));
+    await new Promise(resolve => setTimeout(resolve, 6000));
 
-    const finalMappings = {};
-    const terminalList = ['Terminal 1', 'Terminal 2', 'Terminal 3', 'Terminal 4'];
+    // Extract mappings directly from the DOM using container scoping
+    const finalMappings = await page.evaluate(() => {
+      const results = {};
+      
+      // Look for container blocks or list items that house the airline info along with their terminal context
+      // On many Bootstrap/Tailwind SPAs, sections have ID or class attributes matching terminal identifiers
+      const terminalBlocks = document.querySelectorAll('div[id*="terminal"], section[id*="terminal"], .tab-pane, .card, .airline-container');
 
-    for (const term of terminalList) {
-      // Click the specific terminal tab/button on the page
-      const foundTab = await page.evaluate((targetTerm) => {
-        const elements = Array.from(document.querySelectorAll('button, a, div, span, li, h3, h4'));
-        const match = elements.find(el => el.innerText && el.innerText.trim().toLowerCase() === targetTerm.toLowerCase());
-        if (match) {
-          match.click();
-          return true;
-        }
-        return false;
-      }, term);
+      if (terminalBlocks.length > 0) {
+        terminalBlocks.forEach(block => {
+          const blockText = block.innerText || '';
+          const lowerBlockText = blockText.toLowerCase();
 
-      if (foundTab) {
-        // Wait for the tab panel transition to complete
-        await new Promise(resolve => setTimeout(resolve, 2000));
+          let term = null;
+          if (lowerBlockText.includes('terminal 1')) term = 'Terminal 1';
+          else if (lowerBlockText.includes('terminal 2')) term = 'Terminal 2';
+          else if (lowerBlockText.includes('terminal 3')) term = 'Terminal 3';
+          else if (lowerBlockText.includes('terminal 4')) term = 'Terminal 4';
+
+          if (term) {
+            const items = block.querySelectorAll('li, p, td, span');
+            items.forEach(item => {
+              const text = item.innerText ? item.innerText.trim() : '';
+              if (text.includes('(') && text.includes(')')) {
+                const cleanName = text.split('(')[0].trim().toLowerCase();
+                const isJunk = 
+                  cleanName.length <= 2 || 
+                  cleanName.includes('terminal') || 
+                  cleanName.includes('flight') || 
+                  cleanName.includes('©') || 
+                  cleanName.includes('corp') || 
+                  cleanName.includes('rights') ||
+                  cleanName.includes('infra');
+
+                if (!isJunk) {
+                  results[cleanName] = term;
+                }
+              }
+            });
+          }
+        });
       }
 
-      // Extract all airline names currently displayed on the active view
-      const airlinesOnScreen = await page.evaluate(() => {
-        const results = [];
-        const items = document.querySelectorAll('li, p, td, span, div');
-        items.forEach(el => {
+      // Fallback: If no structured blocks matched, perform a safe parse looking for explicit heading-to-item proximities
+      if (Object.keys(results).length === 0) {
+        const allElements = document.querySelectorAll('*');
+        let currentTerm = 'Terminal 1';
+
+        allElements.forEach(el => {
           const text = el.innerText ? el.innerText.trim() : '';
-          if (text.includes('(') && text.includes(')')) {
+          const lower = text.toLowerCase();
+
+          if (lower === 'terminal 1' || lower === 'naia terminal 1') currentTerm = 'Terminal 1';
+          if (lower === 'terminal 2' || lower === 'naia terminal 2') currentTerm = 'Terminal 2';
+          if (lower === 'terminal 3' || lower === 'naia terminal 3') currentTerm = 'Terminal 3';
+          if (lower === 'terminal 4' || lower === 'naia terminal 4') currentTerm = 'Terminal 4';
+
+          if (text.includes('(') && text.includes(')') && el.children.length === 0) {
             const cleanName = text.split('(')[0].trim().toLowerCase();
             const isJunk = 
               cleanName.length <= 2 || 
@@ -76,22 +107,18 @@ async function scrapeLiveNaiaMappings() {
               cleanName.includes('rights') ||
               cleanName.includes('infra');
 
-            if (!isJunk && !results.includes(cleanName)) {
-              results.push(cleanName);
+            if (!isJunk) {
+              results[cleanName] = currentTerm;
             }
           }
         });
-        return results;
-      });
+      }
 
-      // Bind these airlines to this specific terminal
-      airlinesOnScreen.forEach(airline => {
-        finalMappings[airline] = term;
-      });
-    }
+      return results;
+    });
 
     await browser.close();
-    console.log(`🌐 Successfully extracted ${Object.keys(finalMappings).length} verified mappings via interactive tab selection.`);
+    console.log(`🌐 Successfully extracted ${Object.keys(finalMappings).length} mappings via robust DOM scoping.`);
     return finalMappings;
   } catch (err) {
     console.error(`❌ Failed to scrape live NAIA site: ${err.message}`);
