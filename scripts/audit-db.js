@@ -39,86 +39,55 @@ async function scrapeLiveNaiaMappings() {
     await page.goto('https://newnaia.com.ph/flights/airline-information', { waitUntil: 'networkidle2', timeout: 40000 });
     await new Promise(resolve => setTimeout(resolve, 6000));
 
-    // Extract mappings directly from the DOM using container scoping
     const finalMappings = await page.evaluate(() => {
       const results = {};
-      
-      // Look for container blocks or list items that house the airline info along with their terminal context
-      // On many Bootstrap/Tailwind SPAs, sections have ID or class attributes matching terminal identifiers
-      const terminalBlocks = document.querySelectorAll('div[id*="terminal"], section[id*="terminal"], .tab-pane, .card, .airline-container');
+      const allElements = document.querySelectorAll('li, p, td, span, div');
+      let currentTerm = 'Terminal 1';
 
-      if (terminalBlocks.length > 0) {
-        terminalBlocks.forEach(block => {
-          const blockText = block.innerText || '';
-          const lowerBlockText = blockText.toLowerCase();
+      allElements.forEach(el => {
+        const text = el.innerText ? el.innerText.trim() : '';
+        const lower = text.toLowerCase();
 
-          let term = null;
-          if (lowerBlockText.includes('terminal 1')) term = 'Terminal 1';
-          else if (lowerBlockText.includes('terminal 2')) term = 'Terminal 2';
-          else if (lowerBlockText.includes('terminal 3')) term = 'Terminal 3';
-          else if (lowerBlockText.includes('terminal 4')) term = 'Terminal 4';
+        // Track terminal section switches accurately
+        if (lower === 'terminal 1' || lower === 'naia terminal 1') currentTerm = 'Terminal 1';
+        else if (lower === 'terminal 2' || lower === 'naia terminal 2') currentTerm = 'Terminal 2';
+        else if (lower === 'terminal 3' || lower === 'naia terminal 3') currentTerm = 'Terminal 3';
+        else if (lower === 'terminal 4' || lower === 'naia terminal 4') currentTerm = 'Terminal 4';
 
-          if (term) {
-            const items = block.querySelectorAll('li, p, td, span');
-            items.forEach(item => {
-              const text = item.innerText ? item.innerText.trim() : '';
-              if (text.includes('(') && text.includes(')')) {
-                const cleanName = text.split('(')[0].trim().toLowerCase();
-                const isJunk = 
-                  cleanName.length <= 2 || 
-                  cleanName.includes('terminal') || 
-                  cleanName.includes('flight') || 
-                  cleanName.includes('©') || 
-                  cleanName.includes('corp') || 
-                  cleanName.includes('rights') ||
-                  cleanName.includes('infra');
+        // Must be a leaf-ish node containing parentheses
+        if (text.includes('(') && text.includes(')') && el.children.length <= 2) {
+          const parts = text.split('(');
+          const cleanName = parts[0].trim().toLowerCase();
+          const codePart = parts[1] ? parts[1].replace(')', '').trim() : '';
 
-                if (!isJunk) {
-                  results[cleanName] = term;
-                }
-              }
-            });
+          // STRICT VALIDATION:
+          // 1. Airline name must be clean and reasonable length
+          // 2. Code inside parentheses must look like an airline code (1-4 alphanumeric chars), NOT JS code
+          const isValidCode = /^[A-Z0-9]{1,4}$/i.test(codePart);
+          
+          const isJunk = 
+            cleanName.length <= 2 || 
+            cleanName.includes('terminal') || 
+            cleanName.includes('flight') || 
+            cleanName.includes('©') || 
+            cleanName.includes('corp') || 
+            cleanName.includes('rights') ||
+            cleanName.includes('infra') ||
+            cleanName.includes('window') ||
+            cleanName.includes('gtag') ||
+            cleanName.includes('function');
+
+          if (!isJunk && isValidCode) {
+            results[cleanName] = currentTerm;
           }
-        });
-      }
-
-      // Fallback: If no structured blocks matched, perform a safe parse looking for explicit heading-to-item proximities
-      if (Object.keys(results).length === 0) {
-        const allElements = document.querySelectorAll('*');
-        let currentTerm = 'Terminal 1';
-
-        allElements.forEach(el => {
-          const text = el.innerText ? el.innerText.trim() : '';
-          const lower = text.toLowerCase();
-
-          if (lower === 'terminal 1' || lower === 'naia terminal 1') currentTerm = 'Terminal 1';
-          if (lower === 'terminal 2' || lower === 'naia terminal 2') currentTerm = 'Terminal 2';
-          if (lower === 'terminal 3' || lower === 'naia terminal 3') currentTerm = 'Terminal 3';
-          if (lower === 'terminal 4' || lower === 'naia terminal 4') currentTerm = 'Terminal 4';
-
-          if (text.includes('(') && text.includes(')') && el.children.length === 0) {
-            const cleanName = text.split('(')[0].trim().toLowerCase();
-            const isJunk = 
-              cleanName.length <= 2 || 
-              cleanName.includes('terminal') || 
-              cleanName.includes('flight') || 
-              cleanName.includes('©') || 
-              cleanName.includes('corp') || 
-              cleanName.includes('rights') ||
-              cleanName.includes('infra');
-
-            if (!isJunk) {
-              results[cleanName] = currentTerm;
-            }
-          }
-        });
-      }
+        }
+      });
 
       return results;
     });
 
     await browser.close();
-    console.log(`🌐 Successfully extracted ${Object.keys(finalMappings).length} mappings via robust DOM scoping.`);
+    console.log(`🌐 Successfully extracted ${Object.keys(finalMappings).length} validated airline mappings.`);
     return finalMappings;
   } catch (err) {
     console.error(`❌ Failed to scrape live NAIA site: ${err.message}`);
@@ -197,14 +166,14 @@ async function runAudit() {
    // 2. Check for missing airlines present in live map but NOT in local records
     if (target.hub === 'mnl') {
       for (const [liveAirlineName, liveTerminal] of Object.entries(airportMap)) {
-        
-        // 🚨 SAFEGUARD: Skip footer text, copyright lines, or junk noise
         const lowerName = liveAirlineName.toLowerCase();
         if (
           lowerName.includes('©') || 
           lowerName.includes('corp') || 
           lowerName.includes('rights') ||
-          lowerName.includes('infra')
+          lowerName.includes('infra') ||
+          lowerName.includes('window') ||
+          lowerName.includes('gtag')
         ) {
           continue;
         }
