@@ -39,30 +39,44 @@ async function scrapeLiveNaiaMappings() {
     await page.goto('https://newnaia.com.ph/flights/airline-information', { waitUntil: 'networkidle2', timeout: 40000 });
     await new Promise(resolve => setTimeout(resolve, 5000));
 
-    // Improved DOM extraction to correctly bind airlines to their exact container terminals
+    // Scrape with precise terminal container scoping
     const liveMappings = await page.evaluate(() => {
       const map = {};
       
-      // Look for terminal container sections or headings on the page
-      const sections = document.querySelectorAll('div, section, tab');
-      let activeTerminal = "Terminal 1";
+      // Find all terminal headers, tabs, or card containers on the page
+      // Usually official portals group airlines under explicit Terminal headings or accordion boxes
+      const textNodes = document.querySelectorAll('h1, h2, h3, h4, h5, .terminal-title, .card-header, strong, b');
+      
+      let currentTerminal = "Terminal 1";
 
-      const allElements = document.querySelectorAll('*');
+      // Better traversal: iterate through blocks or look for explicit terminal scope containers
+      const allElements = document.querySelectorAll('div, section, article, li, td');
+      
       allElements.forEach(el => {
         const text = el.innerText ? el.innerText.trim() : '';
         const lower = text.toLowerCase();
 
-        // Detect precise terminal blocks
-        if (lower === 'terminal 1' || lower === 'NAIA Terminal 1') activeTerminal = 'Terminal 1';
-        if (lower === 'terminal 2' || lower === 'NAIA Terminal 2') activeTerminal = 'Terminal 2';
-        if (lower === 'terminal 3' || lower === 'NAIA Terminal 3') activeTerminal = 'Terminal 3';
-        if (lower === 'terminal 4' || lower === 'NAIA Terminal 4') activeTerminal = 'Terminal 4';
+        // Strict terminal boundary detection
+        if (lower === 'terminal 1' || lower === 'naia terminal 1') currentTerminal = 'Terminal 1';
+        else if (lower === 'terminal 2' || lower === 'naia terminal 2') currentTerminal = 'Terminal 2';
+        else if (lower === 'terminal 3' || lower === 'naia terminal 3') currentTerminal = 'Terminal 3';
+        else if (lower === 'terminal 4' || lower === 'naia terminal 4') currentTerminal = 'Terminal 4';
 
-        // Extract airline elements (e.g., list items or table cells containing airline names)
+        // Extract airline elements while filtering out footers, copyrights, and UI labels
         if ((el.tagName === 'LI' || el.tagName === 'TD' || el.tagName === 'P') && text.includes('(') && text.includes(')')) {
           const cleanName = text.split('(')[0].trim().toLowerCase();
-          if (cleanName.length > 2 && !cleanName.includes('terminal')) {
-            map[cleanName] = activeTerminal;
+          
+          // Exclude noise, footers, and short strings
+          const isInvalid = 
+            cleanName.length <= 2 || 
+            cleanName.includes('terminal') || 
+            cleanName.includes('flight') || 
+            cleanName.includes('©') || 
+            cleanName.includes('rights') ||
+            cleanName.includes('corp');
+
+          if (!isInvalid) {
+            map[cleanName] = currentTerminal;
           }
         }
       });
@@ -71,7 +85,7 @@ async function scrapeLiveNaiaMappings() {
     });
 
     await browser.close();
-    console.log(`🌐 Successfully extracted ${Object.keys(liveMappings).length} live mappings from newnaia.com.ph.`);
+    console.log(`🌐 Successfully extracted ${Object.keys(liveMappings).length} valid live mappings from newnaia.com.ph.`);
     return liveMappings;
   } catch (err) {
     console.error(`❌ Failed to scrape live NAIA site: ${err.message}`);
@@ -147,10 +161,25 @@ async function runAudit() {
       }
     }
 
-    // 2. Check for missing airlines present in live map but NOT in local records
+   // 2. Check for missing airlines present in live map but NOT in local records
     if (target.hub === 'mnl') {
       for (const [liveAirlineName, liveTerminal] of Object.entries(airportMap)) {
-        const found = Array.from(existingAirlineNames).some(localName => localName.includes(liveAirlineName) || liveAirlineName.includes(localName));
+        
+        // 🚨 SAFEGUARD: Skip footer text, copyright lines, or junk noise
+        const lowerName = liveAirlineName.toLowerCase();
+        if (
+          lowerName.includes('©') || 
+          lowerName.includes('corp') || 
+          lowerName.includes('rights') ||
+          lowerName.includes('infra')
+        ) {
+          continue;
+        }
+
+        const found = Array.from(existingAirlineNames).some(localName => 
+          localName.includes(liveAirlineName) || liveAirlineName.includes(localName)
+        );
+
         if (!found) {
           missingAirlinesReport.push({
             hub: 'MNL',
