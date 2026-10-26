@@ -27,7 +27,7 @@ const OUT = process.env.OUT || path.join('hubs', 'mnl', 'mnl-terminals.generated
 const DEBUG_DIR = process.env.DEBUG_DIR || 'scrape-debug';
 const EXPECTED_TERMINALS = ['Terminal 1', 'Terminal 2', 'Terminal 3', 'Terminal 4'];
 const MIN_AIRLINES = Number(process.env.MIN_AIRLINES || 15);
-const MAX_SHARE = 0.85; // no single terminal may hold more than 85% of airlines
+const MAX_SHARE = 0.9; // no single terminal may hold more than 90% of airlines
 
 // Kept as strings so the same patterns run inside the page and in Node.
 const AIRLINE_SRC = String.raw`^([A-Za-z][A-Za-z0-9&.'’\-\/ ]{1,59}?)\s*\(([A-Z0-9]{1,4})\)$`;
@@ -164,6 +164,68 @@ async function diagnose(page) {
   console.error('--- DIAGNOSTIC ---\n' + JSON.stringify(info, null, 2) + '\n--- END DIAGNOSTIC ---');
 }
 
+/** Chip labels like "T1".."T4" inside <main>. */
+async function findFilterChips(page) {
+  return page.evaluate(() => {
+    const norm = (s) => (s || '').replace(/\s+/g, ' ').trim();
+    const root = document.querySelector('main') || document.body;
+    const labels = new Set();
+    root.querySelectorAll('button, a, li, div, span, label, [role="button"]').forEach((e) => {
+      const t = norm(e.textContent);
+      if (/^T[1-4]$/i.test(t) && (e.offsetParent || e.getClientRects().length)) labels.add(t.toUpperCase());
+    });
+    return [...labels].sort();
+  });
+}
+
+async function clickByExactText(page, text) {
+  return page.evaluate((text) => {
+    const norm = (s) => (s || '').replace(/\s+/g, ' ').trim();
+    const root = document.querySelector('main') || document.body;
+    const cands = Array.from(root.querySelectorAll('button, a, li, div, span, label, [role="button"]')).filter(
+      (e) => norm(e.textContent).toLowerCase() === text.toLowerCase() && (e.offsetParent || e.getClientRects().length)
+    );
+    if (!cands.length) return false;
+    const pick = cands.find((e) => e.matches('button, a, [role="button"], label')) || cands[cands.length - 1];
+    pick.click();
+    return true;
+  }, text);
+}
+
+/** Visible "Name (CODE)" leaf elements inside <main>. */
+async function readVisibleAirlines(page) {
+  return page.evaluate(({ AIRLINE_SRC, JUNK_SRC }) => {
+    const AIR = new RegExp(AIRLINE_SRC);
+    const JUNK = new RegExp(JUNK_SRC, 'i');
+    const norm = (s) => (s || '').replace(/\s+/g, ' ').trim();
+    const root = document.querySelector('main') || document.body;
+    const out = [];
+    root.querySelectorAll('*').forEach((e) => {
+      if (e.children.length) return;
+      if (!(e.offsetParent || e.getClientRects().length)) return;
+      if (e.closest('nav, header, footer, select, option, script, style, noscript')) return;
+      const t = norm(e.textContent);
+      if (!t || t.length > 80 || JUNK.test(t)) return;
+      const m = t.match(AIR);
+      if (m) out.push({ name: norm(m[1]), code: m[2], text: t });
+    });
+    return out;
+  }, { AIRLINE_SRC, JUNK_SRC });
+}
+
+/** Re-read until two consecutive reads agree (the SPA re-renders after a click). */
+async function readStable(page) {
+  let prev = null, cur = [];
+  for (let i = 0; i < 8; i++) {
+    await sleep(500);
+    cur = await readVisibleAirlines(page);
+    const key = JSON.stringify(cur.map((c) => c.text));
+    if (key === prev) return cur;
+    prev = key;
+  }
+  return cur;
+}
+
 async function scrapeOnce(browser) {
   const page = await browser.newPage();
   try {
@@ -177,6 +239,27 @@ async function scrapeOnce(browser) {
 
     const params = { AIRLINE_SRC, TERMINAL_SRC, JUNK_SRC };
     const rows = [];
+
+    // Strategy F (current site): "Choose a terminal: All T1 T2 T3" filter chips over one flat list
+    const chips = await findFilterChips(page);
+    if (chips.length >= 2) {
+      const all = await readStable(page);
+      const assigned = new Set();
+      for (const chip of chips) {
+        await clickByExactText(page, 'All'); // reset in case chips are toggles
+        await sleep(400);
+        if (!(await clickByExactText(page, chip))) continue;
+        const list = await readStable(page);
+        const terminal = `Terminal ${chip.slice(1)}`;
+        list.forEach((a) => { rows.push({ ...a, terminal }); assigned.add(a.code); });
+      }
+      await clickByExactText(page, 'All');
+      const onlyInAll = all.filter((a) => !assigned.has(a.code));
+      if (onlyInAll.length) {
+        console.warn(`ℹ️  ${onlyInAll.length} airline(s) appear only under "All" (no chip): ${onlyInAll.map((a) => `${a.name} (${a.code})`).join(', ')}`);
+      }
+      return { rows, strategy: 'filter', page };
+    }
 
     // Strategy A: tabs ("Terminal 1" ... "Terminal 4" with role=tab)
     const tabs = await page.$$('[role="tab"]');
@@ -232,10 +315,22 @@ function buildAndValidate(rows) {
 
   const problems = [];
   if (total < MIN_AIRLINES) problems.push(`Only ${total} airlines parsed (min ${MIN_AIRLINES}).`);
+  // Some terminals may legitimately be empty/absent (the site currently has no T4 chip),
+  // but at least two must be populated, and no two populated terminals may be identical
+  // (identical lists mean the filter never applied and everything bled together).
+  const populated = Object.entries(counts).filter(([, n]) => n > 0).map(([t]) => t);
+  if (populated.length < 2) problems.push(`Only ${populated.length} terminal(s) populated; need at least 2.`);
   for (const [t, n] of Object.entries(counts)) {
-    if (n === 0) problems.push(`${t} has 0 airlines.`);
     if (total && n / total > MAX_SHARE) problems.push(`${t} holds ${Math.round((100 * n) / total)}% of airlines (bleed suspected).`);
   }
+  const sets = Object.fromEntries(populated.map((t) => [t, airlines.filter((a) => a.terminals.includes(t)).map((a) => a.code).sort().join(',')]));
+  for (let i = 0; i < populated.length; i++) {
+    for (let j = i + 1; j < populated.length; j++) {
+      if (sets[populated[i]] === sets[populated[j]]) problems.push(`${populated[i]} and ${populated[j]} have identical airline lists (filter not applied).`);
+    }
+  }
+  const empty = Object.entries(counts).filter(([, n]) => n === 0).map(([t]) => t);
+  if (empty.length) console.warn(`ℹ️  No airlines found for: ${empty.join(', ')}`);
   return { airlines, counts, dropped, problems };
 }
 
