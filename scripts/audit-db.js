@@ -37,60 +37,57 @@ async function scrapeLiveNaiaMappings() {
     const page = await browser.newPage();
     await page.setUserAgent('Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36');
     await page.goto('https://newnaia.com.ph/flights/airline-information', { waitUntil: 'networkidle2', timeout: 40000 });
-    await new Promise(resolve => setTimeout(resolve, 5000));
+    await new Promise(resolve => setTimeout(resolve, 6000));
 
-    // Robust line-by-line parser with header tracking and footer exclusion
+    // Target structured layout blocks on newnaia.com.ph
     const liveMappings = await page.evaluate(() => {
       const map = {};
-      const fullText = document.body.innerText;
-      const lines = fullText.split('\n').map(l => l.trim()).filter(Boolean);
+      
+      // The site typically organizes terminals into tab panels, cards, or grid sections
+      // Let's query elements that contain terminal headers and look at their scoped children
+      const terminalSections = document.querySelectorAll('.card, .tab-pane, section, div');
 
-      let currentTerminal = "Terminal 1";
+      terminalSections.forEach(section => {
+        const sectionText = section.innerText || '';
+        const lowerSectionText = sectionText.toLowerCase();
 
-      for (let i = 0; i < lines.length; i++) {
-        const line = lines[i];
-        const lower = line.toLowerCase();
+        // Determine which terminal this specific card/section belongs to
+        let sectionTerminal = null;
+        if (lowerSectionText.includes('terminal 1')) sectionTerminal = 'Terminal 1';
+        else if (lowerSectionText.includes('terminal 2')) sectionTerminal = 'Terminal 2';
+        else if (lowerSectionText.includes('terminal 3')) sectionTerminal = 'Terminal 3';
+        else if (lowerSectionText.includes('terminal 4')) sectionTerminal = 'Terminal 4';
 
-        // Track terminal header switches
-        if (lower.includes('terminal 1')) {
-          currentTerminal = 'Terminal 1';
-          continue;
-        } else if (lower.includes('terminal 2')) {
-          currentTerminal = 'Terminal 2';
-          continue;
-        } else if (lower.includes('terminal 3')) {
-          currentTerminal = 'Terminal 3';
-          continue;
-        } else if (lower.includes('terminal 4')) {
-          currentTerminal = 'Terminal 4';
-          continue;
+        if (sectionTerminal) {
+          // Find all airline items or text lines inside this specific terminal section
+          const items = section.querySelectorAll('li, p, td, span, div');
+          items.forEach(item => {
+            const text = item.innerText ? item.innerText.trim() : '';
+            if (text.includes('(') && text.includes(')')) {
+              const airlineClean = text.split('(')[0].trim().toLowerCase();
+              
+              const isJunk = 
+                airlineClean.length <= 2 || 
+                airlineClean.includes('terminal') || 
+                airlineClean.includes('flight') || 
+                airlineClean.includes('©') || 
+                airlineClean.includes('corp') || 
+                airlineClean.includes('rights') ||
+                airlineClean.includes('infra');
+
+              if (!isJunk && !map[airlineClean]) {
+                map[airlineClean] = sectionTerminal;
+              }
+            }
+          });
         }
-
-        // Match airline entries containing parentheses (e.g., "Cebu Pacific (5J)")
-        if (line.includes('(') && line.includes(')')) {
-          const airlineClean = line.split('(')[0].trim().toLowerCase();
-          
-          // Filter out footers, copyrights, or UI artifacts
-          const isJunk = 
-            airlineClean.length <= 2 || 
-            airlineClean.includes('terminal') || 
-            airlineClean.includes('flight') || 
-            airlineClean.includes('©') || 
-            airlineClean.includes('corp') || 
-            airlineClean.includes('rights') ||
-            airlineClean.includes('infra');
-
-          if (!isJunk) {
-            map[airlineClean] = currentTerminal;
-          }
-        }
-      }
+      });
 
       return map;
     });
 
     await browser.close();
-    console.log(`🌐 Successfully extracted ${Object.keys(liveMappings).length} valid live mappings from newnaia.com.ph.`);
+    console.log(`🌐 Successfully extracted ${Object.keys(liveMappings).length} structured live mappings from newnaia.com.ph.`);
     return liveMappings;
   } catch (err) {
     console.error(`❌ Failed to scrape live NAIA site: ${err.message}`);
