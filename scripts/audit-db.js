@@ -37,67 +37,53 @@ async function scrapeLiveNaiaMappings() {
     const page = await browser.newPage();
     await page.setUserAgent('Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36');
     await page.goto('https://newnaia.com.ph/flights/airline-information', { waitUntil: 'networkidle2', timeout: 40000 });
-    await new Promise(resolve => setTimeout(resolve, 5000));
+    
+    // Wait for the SPA elements to fully hydrate
+    await new Promise(resolve => setTimeout(resolve, 6000));
 
-    const map = {};
-    const terminalNames = ['Terminal 1', 'Terminal 2', 'Terminal 3', 'Terminal 4'];
+    const map = await page.evaluate(() => {
+      const results = {};
+      
+      // Look for all text containers or table rows on the fully rendered page
+      // On newnaia.com.ph, airline listings typically appear inside structured cards or table elements
+      const rows = document.querySelectorAll('tr, .airline-item, .card, li');
+      
+      let currentTerminal = "Terminal 1";
 
-    for (const termName of terminalNames) {
-      try {
-        // Try to find and click the tab/button for this terminal
-        const clicked = await page.evaluate((targetTerm) => {
-          const buttons = Array.from(document.querySelectorAll('button, a, div, span, li'));
-          const targetBtn = buttons.find(el => el.innerText && el.innerText.trim().toLowerCase() === targetTerm.toLowerCase());
-          if (targetBtn) {
-            targetBtn.click();
-            return true;
+      rows.forEach(row => {
+        const text = row.innerText ? row.innerText.trim() : '';
+        const lower = text.toLowerCase();
+
+        // Check if this specific row or card indicates a terminal header switch
+        if (lower.includes('terminal 1')) currentTerminal = 'Terminal 1';
+        else if (lower.includes('terminal 2')) currentTerminal = 'Terminal 2';
+        else if (lower.includes('terminal 3')) currentTerminal = 'Terminal 3';
+        else if (lower.includes('terminal 4')) currentTerminal = 'Terminal 4';
+
+        // Extract airline name if it has parentheses (e.g., "Cebu Pacific (5J)")
+        if (text.includes('(') && text.includes(')')) {
+          const airlineClean = text.split('(')[0].trim().toLowerCase();
+          
+          const isJunk = 
+            airlineClean.length <= 2 || 
+            airlineClean.includes('terminal') || 
+            airlineClean.includes('flight') || 
+            airlineClean.includes('©') || 
+            airlineClean.includes('corp') || 
+            airlineClean.includes('rights') ||
+            airlineClean.includes('infra');
+
+          if (!isJunk) {
+            results[airlineClean] = currentTerminal;
           }
-          return false;
-        }, termName);
-
-        if (clicked) {
-          // Wait for tab content to render
-          await new Promise(resolve => setTimeout(resolve, 2000));
         }
+      });
 
-        // Extract all visible airlines currently on screen after clicking the tab
-        const visibleAirlines = await page.evaluate((activeTerm) => {
-          const results = [];
-          const fullText = document.body.innerText;
-          const lines = fullText.split('\n').map(l => l.trim()).filter(Boolean);
-
-          for (const line of lines) {
-            if (line.includes('(') && line.includes(')')) {
-              const cleanName = line.split('(')[0].trim().toLowerCase();
-              const isJunk = 
-                cleanName.length <= 2 || 
-                cleanName.includes('terminal') || 
-                cleanName.includes('flight') || 
-                cleanName.includes('©') || 
-                cleanName.includes('corp') || 
-                cleanName.includes('rights') ||
-                cleanName.includes('infra');
-
-              if (!isJunk) {
-                results.push(cleanName);
-              }
-            }
-          }
-          return results;
-        }, termName);
-
-        // Map each found airline to this terminal
-        visibleAirlines.forEach(airline => {
-          map[airline] = termName;
-        });
-
-      } catch (e) {
-        console.log(`⚠️ Note: Could not isolate tab for ${termName}`);
-      }
-    }
+      return results;
+    });
 
     await browser.close();
-    console.log(`🌐 Successfully extracted ${Object.keys(map).length} live mappings via tab iteration from newnaia.com.ph.`);
+    console.log(`🌐 Successfully extracted ${Object.keys(map).length} live mappings with correct terminal scoping.`);
     return map;
   } catch (err) {
     console.error(`❌ Failed to scrape live NAIA site: ${err.message}`);
