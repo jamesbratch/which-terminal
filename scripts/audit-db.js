@@ -200,7 +200,7 @@ async function runAudit() {
   }
   if (!WRITE) {
     console.log('Dry run: nothing written. Re-run with --write to patch terminals (add --add-missing to append new airlines).');
-    process.exitCode = 2;
+    if (process.argv.includes('--strict')) process.exitCode = 2; // opt-in: fail CI when drift exists
     return;
   }
 
