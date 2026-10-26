@@ -1,0 +1,52 @@
+name: MNL terminal sync
+
+on:
+  schedule:
+    - cron: '0 3 * * *'   # daily, 03:00 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - run: npm ci
+
+      - name: Scrape newnaia.com.ph
+        run: node scripts/scrape-terminals.js
+
+      - name: Patch database (writes only when drift is found)
+        run: node scripts/patch-database.js --write | tee drift-report.txt
+
+      - name: Upload debug output on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: scrape-debug
+          path: scrape-debug/
+
+      - name: Open PR with changes
+        uses: peter-evans/create-pull-request@v6
+        with:
+          branch: bot/mnl-terminal-sync
+          commit-message: |
+            chore(mnl): sync airline terminals from newnaia.com.ph
+
+            Co-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>
+            Claude-Session: https://claude.ai/code/session_012RvJenC6gFN55MMFMjPzYj
+          title: 'MNL terminal drift detected'
+          body-path: drift-report.txt
+          add-paths: |
+            hubs/mnl/mnl-database.js
+            hubs/mnl/mnl-terminals.generated.json

@@ -1,8 +1,14 @@
 // scripts/audit-db.js
+// Usage:
+//   node scripts/audit-db.js            # dry run: report only, writes nothing
+//   node scripts/audit-db.js --write    # patch mismatched terminals (+ append missing airlines with --add-missing)
 const fs = require('fs');
 const path = require('path');
-const puppeteer = require('puppeteer');
-
+const { scrape } = require('./scrape-terminals');
+ 
+const WRITE = process.argv.includes('--write');
+const ADD_MISSING = process.argv.includes('--add-missing');
+ 
 function getFilePath(relativePath) {
   const rootPath = path.resolve(process.cwd(), relativePath);
   if (fs.existsSync(rootPath)) return rootPath;
@@ -10,7 +16,7 @@ function getFilePath(relativePath) {
   if (fs.existsSync(scriptRelPath)) return scriptRelPath;
   return null;
 }
-
+ 
 function loadLocalDatabase(filePath) {
   if (!filePath) return [];
   try {
@@ -25,244 +31,172 @@ function loadLocalDatabase(filePath) {
     return [];
   }
 }
-
-async function scrapeLiveNaiaMappings() {
-  console.log("🌐 Launching headless browser to scrape https://newnaia.com.ph/flights/airline-information...");
-  const browser = await puppeteer.launch({
-    headless: true,
-    args: ['--no-sandbox', '--disable-setuid-sandbox']
-  });
-  
-  try {
-    const page = await browser.newPage();
-    await page.setUserAgent('Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36');
-    await page.goto('https://newnaia.com.ph/flights/airline-information', { waitUntil: 'networkidle2', timeout: 40000 });
-    await new Promise(resolve => setTimeout(resolve, 6000));
-
-    const finalMappings = await page.evaluate(() => {
-      const results = {};
-      
-      // Grab all elements to walk the page in exact visual order
-      const allElements = document.querySelectorAll('h1, h2, h3, h4, h5, li, p, td, span');
-      let currentTerm = 'Terminal 1';
-
-      allElements.forEach(el => {
-        const text = el.innerText ? el.innerText.trim() : '';
-        const lower = text.toLowerCase();
-
-        // Strict terminal header detection
-        if (lower === 'terminal 1' || lower === 'naia terminal 1' || lower === 't1') {
-          currentTerm = 'Terminal 1';
-          return;
-        }
-        if (lower === 'terminal 2' || lower === 'naia terminal 2' || lower === 't2') {
-          currentTerm = 'Terminal 2';
-          return;
-        }
-        if (lower === 'terminal 3' || lower === 'naia terminal 3' || lower === 't3') {
-          currentTerm = 'Terminal 3';
-          return;
-        }
-        if (lower === 'terminal 4' || lower === 'naia terminal 4' || lower === 't4') {
-          currentTerm = 'Terminal 4';
-          return;
-        }
-
-        // Match airline entries containing parentheses and a valid airline code
-        if (text.includes('(') && text.includes(')') && el.children.length <= 1) {
-          const parts = text.split('(');
-          const cleanName = parts[0].trim().toLowerCase();
-          const codePart = parts[1] ? parts[1].replace(')', '').trim() : '';
-          
-          const isValidCode = /^[A-Z0-9]{1,4}$/i.test(codePart);
-          
-          const isJunk = 
-            cleanName.length <= 2 || 
-            cleanName.includes('terminal') || 
-            cleanName.includes('flight') || 
-            cleanName.includes('©') || 
-            cleanName.includes('corp') || 
-            cleanName.includes('rights') ||
-            cleanName.includes('infra') ||
-            cleanName.includes('window') ||
-            cleanName.includes('gtag') ||
-            cleanName.includes('function');
-
-          if (!isJunk && isValidCode) {
-            results[cleanName] = currentTerm;
-          }
-        }
-      });
-
-      return results;
-    });
-
-    await browser.close();
-    console.log(`🌐 Successfully extracted ${Object.keys(finalMappings).length} validated airline mappings.`);
-    return finalMappings;
-  } catch (err) {
-    console.error(`❌ Failed to scrape live NAIA site: ${err.message}`);
-    await browser.close();
-    return null;
+ 
+const esc = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+const norm = (s) => (s || '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
+const tagOf = (terminal) => {
+  const m = /^terminal\s*(\d+)/i.exec(terminal || '');
+  return m ? `t${m[1]}` : null;
+};
+ 
+/** Build lookups from the validated live scrape. */
+function buildLiveIndex(airlines) {
+  const byCode = new Map();
+  const byName = new Map();
+  const ambiguous = [];
+  for (const a of airlines) {
+    if (a.terminals.length !== 1) { ambiguous.push(a); continue; } // listed in >1 terminal: report only
+    const entry = { name: a.name, code: a.code, terminal: a.terminals[0] };
+    byCode.set(a.code.toUpperCase(), entry);
+    byName.set(norm(a.name), entry);
   }
+  return { byCode, byName, ambiguous };
 }
-
+ 
+function findLive(index, record) {
+  const code = (record.code || '').toUpperCase();
+  if (code && code !== 'XX' && index.byCode.has(code)) return index.byCode.get(code);
+  return index.byName.get(norm(record.name)) || null;
+}
+ 
 async function runAudit() {
-  console.log("🔍 Running Comprehensive Multi-Airport Live Audit...\n");
-
-  const liveMnlMappings = await scrapeLiveNaiaMappings() || {};
-
-  const masterOfficialMap = {
-    "mnl": liveMnlMappings,
-    "bkk": {
-      "thai airways": "Main Terminal",
-      "bangkok airways": "Main Terminal",
-      "emirates": "SAT-1 Concourse",
-      "qatar airways": "Main Terminal"
+  console.log(`🔍 Running Multi-Airport Live Audit (${WRITE ? 'WRITE' : 'dry run'})...\n`);
+ 
+  // Throws (and we exit before touching any file) if the terminal split looks wrong.
+  let live;
+  try {
+    live = await scrape();
+  } catch (err) {
+    console.error(`❌ Live scrape rejected: ${err.message}`);
+    console.error('No files were modified. See scrape-debug/ for a screenshot and the page HTML.');
+    process.exit(1);
+  }
+  console.log(`🌐 Extracted ${live.airlines.length} airlines (strategy: ${live.strategy})`, live.counts, '\n');
+  const liveIndex = buildLiveIndex(live.airlines);
+  if (liveIndex.ambiguous.length) {
+    console.log('ℹ️  Listed under multiple terminals (not auto-patched):',
+      liveIndex.ambiguous.map((a) => `${a.name} [${a.terminals.join(', ')}]`).join('; '), '\n');
+  }
+ 
+  const staticMaps = {
+    bkk: {
+      'thai airways': 'Main Terminal',
+      'bangkok airways': 'Main Terminal',
+      emirates: 'SAT-1 Concourse',
+      'qatar airways': 'Main Terminal',
     },
-    "dmk": {
-      "airasia": "Terminal 1",
-      "thai airasia": "Terminal 1",
-      "nok air": "Terminal 1",
-      "thai lion air": "Terminal 2"
-    }
+    dmk: {
+      airasia: 'Terminal 1',
+      'thai airasia': 'Terminal 1',
+      'nok air': 'Terminal 1',
+      'thai lion air': 'Terminal 2',
+    },
   };
-
+ 
   const targets = [
-    { hub: "mnl", filename: "hubs/mnl/mnl-database.js" },
-    { hub: "bkk", filename: "hubs/bkk/bkk-database.js" },
-    { hub: "dmk", filename: "hubs/dmk/dmk-database.js" }
+    { hub: 'mnl', filename: 'hubs/mnl/mnl-database.js' },
+    { hub: 'bkk', filename: 'hubs/bkk/bkk-database.js' },
+    { hub: 'dmk', filename: 'hubs/dmk/dmk-database.js' },
   ];
-
+ 
   const report = [];
-  const missingAirlinesReport = [];
-
+  const missing = [];
+ 
   for (const target of targets) {
     const filePath = getFilePath(target.filename);
     if (!filePath) continue;
-
     console.log(`Auditing hub [${target.hub.toUpperCase()}] using ${target.filename}...`);
     const records = loadLocalDatabase(filePath);
-    const airportMap = masterOfficialMap[target.hub] || {};
-    const existingAirlineNames = new Set(records.map(r => r.name.toLowerCase().trim()));
-
-    // 1. Check existing records for mismatches
+    const matchedCodes = new Set();
+ 
     for (const record of records) {
-      const exactKey = record.name.toLowerCase().trim();
-      const expectedTerminal = airportMap[exactKey];
-
-      if (expectedTerminal) {
-        const normalizedLocalTerm = record.terminal.toLowerCase().replace(/terminal\s*/, 't').trim();
-        const normalizedExpectedTerm = expectedTerminal.toLowerCase().replace(/terminal\s*/, 't').trim();
-        
-        const isStandardTerminal = /^terminal/i.test(expectedTerminal);
-        const expectedTagMatch = isStandardTerminal ? expectedTerminal.match(/\d+/) : null;
-        const expectedTag = expectedTagMatch ? `t${expectedTagMatch[0]}` : null;
-        const localTag = record.tag ? record.tag.toLowerCase().trim() : '';
-
-        if (!normalizedLocalTerm.includes(normalizedExpectedTerm) || (expectedTag && localTag !== expectedTag)) {
-          report.push({
-            hub: target.hub.toUpperCase(),
-            file: target.filename,
-            airline: record.name,
-            dbTerminal: record.terminal,
-            officialWebsiteTerminal: expectedTerminal,
-            dbTag: record.tag,
-            expectedTag: expectedTag || '(preserved)'
-          });
-        }
+      let expected = null;
+      if (target.hub === 'mnl') {
+        const hit = findLive(liveIndex, record);
+        if (hit) { expected = hit.terminal; matchedCodes.add(hit.code.toUpperCase()); }
+      } else {
+        expected = staticMaps[target.hub][norm(record.name)] || null;
+      }
+      if (!expected) continue;
+ 
+      const expectedTag = tagOf(expected);
+      const localTag = (record.tag || '').toLowerCase().trim();
+      const termDiffers = norm(record.terminal) !== norm(expected);
+      const tagDiffers = expectedTag && localTag !== expectedTag;
+      if (termDiffers || tagDiffers) {
+        report.push({
+          hub: target.hub.toUpperCase(),
+          file: target.filename,
+          airline: record.name,
+          dbTerminal: record.terminal,
+          officialWebsiteTerminal: expected,
+          dbTag: record.tag,
+          expectedTag: expectedTag || '(preserved)',
+        });
       }
     }
-
-   // 2. Check for missing airlines present in live map but NOT in local records
+ 
     if (target.hub === 'mnl') {
-      for (const [liveAirlineName, liveTerminal] of Object.entries(airportMap)) {
-        const lowerName = liveAirlineName.toLowerCase();
-        if (
-          lowerName.includes('©') || 
-          lowerName.includes('corp') || 
-          lowerName.includes('rights') ||
-          lowerName.includes('infra') ||
-          lowerName.includes('window') ||
-          lowerName.includes('gtag')
-        ) {
-          continue;
-        }
-
-        const found = Array.from(existingAirlineNames).some(localName => 
-          localName.includes(liveAirlineName) || liveAirlineName.includes(localName)
-        );
-
-        if (!found) {
-          missingAirlinesReport.push({
-            hub: 'MNL',
-            file: target.filename,
-            airline: liveAirlineName,
-            officialWebsiteTerminal: liveTerminal
-          });
+      for (const a of liveIndex.byCode.values()) {
+        if (!matchedCodes.has(a.code.toUpperCase())) {
+          missing.push({ hub: 'MNL', file: target.filename, airline: a.name, code: a.code, officialWebsiteTerminal: a.terminal });
         }
       }
     }
   }
-
-  console.log(`\n==================================================`);
+ 
+  console.log('\n==================================================');
   console.log(`Total Mismatched Discrepancies: ${report.length}`);
-  console.log(`Total Missing Airlines Found: ${missingAirlinesReport.length}`);
-  console.log(`==================================================\n`);
-
-  if (report.length > 0 || missingAirlinesReport.length > 0) {
-    if (report.length > 0) {
-      console.warn("⚠️ DRIFT DETECTED: Updating mismatched terminals...");
-      console.table(report);
-      
-      const filesToUpdate = [...new Set(report.map(r => r.file))];
-      for (const filename of filesToUpdate) {
-        const filePath = getFilePath(filename);
-        let content = fs.readFileSync(filePath, 'utf8');
-        const hubDiscrepancies = report.filter(r => r.file === filename);
-        
-        for (const item of hubDiscrepancies) {
-          const safeAirline = item.airline.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-          const regex = new RegExp(`(name:\\s*['"]${safeAirline}['"][\\s\\S]*?terminal:\\s*['"])[^'"]+(['"])`, 'i');
-          content = content.replace(regex, `$1${item.officialWebsiteTerminal}$2`);
-
-          const isStandardTerminal = /^terminal/i.test(item.officialWebsiteTerminal);
-          const newTagMatch = isStandardTerminal ? item.officialWebsiteTerminal.match(/\d+/) : null;
-          if (newTagMatch) {
-            const newTag = `t${newTagMatch[0]}`;
-            const tagRegex = new RegExp(`(name:\\s*['"]${safeAirline}['"][\\s\\S]*?tag:\\s*['"])[^'"]+(['"])`, 'i');
-            content = content.replace(tagRegex, `$1${newTag}$2`);
-          }
-        }
-        fs.writeFileSync(filePath, content, 'utf8');
-      }
-    }
-
-    if (missingAirlinesReport.length > 0) {
-      console.warn("⚠️ MISSING AIRLINES DETECTED: Appending new entries to database...");
-      console.table(missingAirlinesReport);
-
-      for (const item of missingAirlinesReport) {
-        const filePath = getFilePath(item.file);
-        let content = fs.readFileSync(filePath, 'utf8');
-        
-        const termNum = item.officialWebsiteTerminal.match(/\d+/) ? item.officialWebsiteTerminal.match(/\d+/)[0] : '1';
-        const newEntry = `  { name: "${item.airline.charAt(0).toUpperCase() + item.airline.slice(1)}", code: "XX", terminal: "${item.officialWebsiteTerminal}", tag: "t${termNum}", hubName: "Manila (NAIA)", hubCode: "mnl", link: "hubs/mnl/mnl.html", notes: "Auto-appended from live official source." },\n`;
-        
-        // Insert right before the closing bracket of the array
-        const lastBracketIdx = content.lastIndexOf(']');
-        if (lastBracketIdx !== -1) {
-          content = content.slice(0, lastBracketIdx) + newEntry + content.slice(lastBracketIdx);
-          fs.writeFileSync(filePath, content, 'utf8');
-          console.log(`✨ Appended missing airline "${item.airline}" to ${item.file}`);
-        }
-      }
-    }
-
-    console.log("\n💾 All database files successfully patched with updates and missing airlines.");
-  } else {
-    console.log("✅ Audit completed: All local databases match live official sources perfectly.");
+  console.log(`Total Missing Airlines Found: ${missing.length}`);
+  console.log('==================================================\n');
+ 
+  if (report.length) console.table(report);
+  if (missing.length) console.table(missing);
+ 
+  if (!report.length && !missing.length) {
+    console.log('✅ Audit completed: All local databases match live official sources.');
+    return;
   }
+  if (!WRITE) {
+    console.log('Dry run: nothing written. Re-run with --write to patch terminals (add --add-missing to append new airlines).');
+    process.exitCode = 2;
+    return;
+  }
+ 
+  // ---- patch mismatched terminals, scoped to the single object literal for that airline
+  for (const filename of [...new Set(report.map((r) => r.file))]) {
+    const filePath = getFilePath(filename);
+    let content = fs.readFileSync(filePath, 'utf8');
+    for (const item of report.filter((r) => r.file === filename)) {
+      const entryRe = new RegExp(`\\{[^{}]*name:\\s*['"]${esc(item.airline)}['"][^{}]*\\}`, 'i');
+      const m = content.match(entryRe);
+      if (!m) { console.warn(`Could not locate entry for ${item.airline}`); continue; }
+      let patched = m[0].replace(/(terminal:\s*['"])[^'"]+(['"])/i, `$1${item.officialWebsiteTerminal}$2`);
+      const newTag = tagOf(item.officialWebsiteTerminal);
+      if (newTag) patched = patched.replace(/(tag:\s*['"])[^'"]+(['"])/i, `$1${newTag}$2`);
+      content = content.replace(m[0], patched);
+    }
+    fs.writeFileSync(filePath, content, 'utf8');
+  }
+ 
+  // ---- append missing airlines (opt-in), using the real IATA code
+  if (ADD_MISSING && missing.length) {
+    for (const item of missing) {
+      const filePath = getFilePath(item.file);
+      let content = fs.readFileSync(filePath, 'utf8');
+      const tag = tagOf(item.officialWebsiteTerminal) || 't1';
+      const newEntry = `  { name: ${JSON.stringify(item.airline)}, code: ${JSON.stringify(item.code)}, terminal: ${JSON.stringify(item.officialWebsiteTerminal)}, tag: "${tag}", hubName: "Manila (NAIA)", hubCode: "mnl", link: "hubs/mnl/mnl.html", notes: "Auto-appended from live official source." },\n`;
+      const idx = content.lastIndexOf(']');
+      if (idx !== -1) {
+        content = content.slice(0, idx) + newEntry + content.slice(idx);
+        fs.writeFileSync(filePath, content, 'utf8');
+        console.log(`✨ Appended "${item.airline}" (${item.code}) to ${item.file}`);
+      }
+    }
+  }
+  console.log('\n💾 Done.');
 }
-
+ 
 runAudit();
+ 
+
