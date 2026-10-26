@@ -5,10 +5,10 @@
 const fs = require('fs');
 const path = require('path');
 const { scrape } = require('./scrape-terminals');
- 
+
 const WRITE = process.argv.includes('--write');
 const ADD_MISSING = process.argv.includes('--add-missing');
- 
+
 function getFilePath(relativePath) {
   const rootPath = path.resolve(process.cwd(), relativePath);
   if (fs.existsSync(rootPath)) return rootPath;
@@ -16,7 +16,7 @@ function getFilePath(relativePath) {
   if (fs.existsSync(scriptRelPath)) return scriptRelPath;
   return null;
 }
- 
+
 function loadLocalDatabase(filePath) {
   if (!filePath) return [];
   try {
@@ -31,14 +31,14 @@ function loadLocalDatabase(filePath) {
     return [];
   }
 }
- 
+
 const esc = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 const norm = (s) => (s || '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
 const tagOf = (terminal) => {
   const m = /^terminal\s*(\d+)/i.exec(terminal || '');
   return m ? `t${m[1]}` : null;
 };
- 
+
 /** Build lookups from the validated live scrape. */
 function buildLiveIndex(airlines) {
   const byCode = new Map();
@@ -52,16 +52,16 @@ function buildLiveIndex(airlines) {
   }
   return { byCode, byName, ambiguous };
 }
- 
+
 function findLive(index, record) {
   const code = (record.code || '').toUpperCase();
   if (code && code !== 'XX' && index.byCode.has(code)) return index.byCode.get(code);
   return index.byName.get(norm(record.name)) || null;
 }
- 
+
 async function runAudit() {
   console.log(`🔍 Running Multi-Airport Live Audit (${WRITE ? 'WRITE' : 'dry run'})...\n`);
- 
+
   // Throws (and we exit before touching any file) if the terminal split looks wrong.
   let live;
   try {
@@ -77,7 +77,7 @@ async function runAudit() {
     console.log('ℹ️  Listed under multiple terminals (not auto-patched):',
       liveIndex.ambiguous.map((a) => `${a.name} [${a.terminals.join(', ')}]`).join('; '), '\n');
   }
- 
+
   const staticMaps = {
     bkk: {
       'thai airways': 'Main Terminal',
@@ -92,33 +92,56 @@ async function runAudit() {
       'thai lion air': 'Terminal 2',
     },
   };
- 
+
   const targets = [
     { hub: 'mnl', filename: 'hubs/mnl/mnl-database.js' },
     { hub: 'bkk', filename: 'hubs/bkk/bkk-database.js' },
     { hub: 'dmk', filename: 'hubs/dmk/dmk-database.js' },
   ];
- 
+
   const report = [];
   const missing = [];
- 
+  const review = [];
+
   for (const target of targets) {
     const filePath = getFilePath(target.filename);
     if (!filePath) continue;
     console.log(`Auditing hub [${target.hub.toUpperCase()}] using ${target.filename}...`);
     const records = loadLocalDatabase(filePath);
     const matchedCodes = new Set();
- 
+    const codeCounts = {};
+    records.forEach((r) => {
+      const c = (r.code || '').toUpperCase();
+      if (c && c !== 'XX') codeCounts[c] = (codeCounts[c] || 0) + 1;
+    });
+
     for (const record of records) {
       let expected = null;
       if (target.hub === 'mnl') {
         const hit = findLive(liveIndex, record);
-        if (hit) { expected = hit.terminal; matchedCodes.add(hit.code.toUpperCase()); }
+        if (hit) {
+          matchedCodes.add(hit.code.toUpperCase()); // never report as "missing"
+          const code = (record.code || '').toUpperCase();
+          const sharedCode = code && codeCounts[code] > 1;
+          const qualifier = record.name.includes('(') && norm(record.name) !== norm(hit.name);
+          if (sharedCode || qualifier) {
+            // e.g. separate domestic/international entries: one live row can't decide both
+            review.push({
+              airline: record.name,
+              dbTerminal: record.terminal,
+              liveName: hit.name,
+              liveTerminal: hit.terminal,
+              reason: sharedCode ? 'code shared by several DB entries' : 'DB name has a qualifier',
+            });
+          } else {
+            expected = hit.terminal;
+          }
+        }
       } else {
         expected = staticMaps[target.hub][norm(record.name)] || null;
       }
       if (!expected) continue;
- 
+
       const expectedTag = tagOf(expected);
       const localTag = (record.tag || '').toLowerCase().trim();
       const termDiffers = norm(record.terminal) !== norm(expected);
@@ -135,24 +158,41 @@ async function runAudit() {
         });
       }
     }
- 
+
     if (target.hub === 'mnl') {
       for (const a of liveIndex.byCode.values()) {
         if (!matchedCodes.has(a.code.toUpperCase())) {
-          missing.push({ hub: 'MNL', file: target.filename, airline: a.name, code: a.code, officialWebsiteTerminal: a.terminal });
+          const ln = norm(a.name);
+          const near = records.find((r) => {
+            const n = norm(r.name);
+            const w = n.split(' ')[0];
+            return n.includes(ln) || ln.includes(n) || (w.length > 3 && w === ln.split(' ')[0]);
+          });
+          missing.push({
+            hub: 'MNL',
+            file: target.filename,
+            airline: a.name,
+            code: a.code,
+            officialWebsiteTerminal: a.terminal,
+            possibleExisting: near ? `${near.name} (${near.code || 'no code'})` : '',
+          });
         }
       }
     }
   }
- 
+
   console.log('\n==================================================');
   console.log(`Total Mismatched Discrepancies: ${report.length}`);
   console.log(`Total Missing Airlines Found: ${missing.length}`);
   console.log('==================================================\n');
- 
+
+  if (review.length) {
+    console.log('Needs manual review (not auto-patched):');
+    console.table(review);
+  }
   if (report.length) console.table(report);
   if (missing.length) console.table(missing);
- 
+
   if (!report.length && !missing.length) {
     console.log('✅ Audit completed: All local databases match live official sources.');
     return;
@@ -162,7 +202,7 @@ async function runAudit() {
     process.exitCode = 2;
     return;
   }
- 
+
   // ---- patch mismatched terminals, scoped to the single object literal for that airline
   for (const filename of [...new Set(report.map((r) => r.file))]) {
     const filePath = getFilePath(filename);
@@ -178,7 +218,7 @@ async function runAudit() {
     }
     fs.writeFileSync(filePath, content, 'utf8');
   }
- 
+
   // ---- append missing airlines (opt-in), using the real IATA code
   if (ADD_MISSING && missing.length) {
     for (const item of missing) {
@@ -196,7 +236,5 @@ async function runAudit() {
   }
   console.log('\n💾 Done.');
 }
- 
-runAudit();
- 
 
+runAudit();
