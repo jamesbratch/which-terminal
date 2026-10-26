@@ -169,6 +169,7 @@ async function runAudit() {
   if (report.length > 0) {
     console.warn("⚠️ DRIFT DETECTED against live source! Updating respective databases...");
     // Auto-patch logic here...
+    console.table(report);
   } else {
     console.log("✅ Audit completed: All local databases match live official sources perfectly.");
   }
