@@ -39,57 +39,54 @@ async function scrapeLiveNaiaMappings() {
     await page.goto('https://newnaia.com.ph/flights/airline-information', { waitUntil: 'networkidle2', timeout: 40000 });
     await new Promise(resolve => setTimeout(resolve, 6000));
 
-    const finalMap = {};
-    const terminals = ['Terminal 1', 'Terminal 2', 'Terminal 3', 'Terminal 4'];
+    const map = await page.evaluate(() => {
+      const results = {};
+      
+      // Grab all structural elements to inspect text headings and items sequentially
+      const elements = document.querySelectorAll('h1, h2, h3, h4, h5, .card, .terminal-title, li, td, p, div');
+      let currentTerminal = "Terminal 1";
 
-    for (const term of terminals) {
-      // Evaluate the page by finding elements containing the terminal title and extracting nearby airline items
-      const airlinesForTerm = await page.evaluate((targetTerm) => {
-        const found = [];
-        const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_ELEMENT);
-        
-        let currentNode;
-        let matchedSection = false;
+      elements.forEach(el => {
+        const text = el.innerText ? el.innerText.trim() : '';
+        const lower = text.toLowerCase();
 
-        while (currentNode = walker.nextNode()) {
-          const text = currentNode.innerText ? currentNode.innerText.trim() : '';
+        // Detect explicit terminal header blocks on the page layout
+        if (lower === 'terminal 1' || lower === 'naia terminal 1' || lower.includes('terminal 1')) {
+          currentTerminal = 'Terminal 1';
+        } else if (lower === 'terminal 2' || lower === 'naia terminal 2' || lower.includes('terminal 2')) {
+          currentTerminal = 'Terminal 2';
+        } else if (lower === 'terminal 3' || lower === 'naia terminal 3' || lower.includes('terminal 3')) {
+          currentTerminal = 'Terminal 3';
+        } else if (lower === 'terminal 4' || lower === 'naia terminal 4' || lower.includes('terminal 4')) {
+          currentTerminal = 'Terminal 4';
+        }
+
+        // Match airline entries containing parentheses (e.g. "Cebu Pacific (5J)")
+        if (text.includes('(') && text.includes(')')) {
+          const airlineClean = text.split('(')[0].trim().toLowerCase();
           
-          // Check if we hit a terminal section heading
-          if (text.toLowerCase() === targetTerm.toLowerCase() || text.toLowerCase().includes(targetTerm.toLowerCase())) {
-            matchedSection = true;
-            continue;
-          }
+          const isJunk = 
+            airlineClean.length <= 2 || 
+            airlineClean.includes('terminal') || 
+            airlineClean.includes('flight') || 
+            airlineClean.includes('©') || 
+            airlineClean.includes('corp') || 
+            airlineClean.includes('rights') ||
+            airlineClean.includes('infra');
 
-          // If we are in or near a matched section, pull airline-like text patterns containing parentheses
-          if (text.includes('(') && text.includes(')')) {
-            const cleanName = text.split('(')[0].trim().toLowerCase();
-            const isJunk = 
-              cleanName.length <= 2 || 
-              cleanName.includes('terminal') || 
-              cleanName.includes('flight') || 
-              cleanName.includes('©') || 
-              cleanName.includes('corp') || 
-              cleanName.includes('rights') ||
-              cleanName.includes('infra');
-
-            if (!isJunk && !found.includes(cleanName)) {
-              found.push(cleanName);
-            }
+          if (!isJunk) {
+            // Only set if not already captured or update to the active scoped terminal
+            results[airlineClean] = currentTerminal;
           }
         }
-        return found;
-      }, term);
-
-      // Assign findings to this terminal if valid
-      airlinesForTerm.forEach(airline => {
-        // Only assign if not already mapped or update to the explicit terminal tab
-        finalMap[airline] = term;
       });
-    }
+
+      return results;
+    });
 
     await browser.close();
-    console.log(`🌐 Successfully extracted ${Object.keys(finalMap).length} verified live mappings.`);
-    return finalMap;
+    console.log(`🌐 Successfully extracted ${Object.keys(map).length} verified live mappings with correct scoped terminals.`);
+    return map;
   } catch (err) {
     console.error(`❌ Failed to scrape live NAIA site: ${err.message}`);
     await browser.close();
