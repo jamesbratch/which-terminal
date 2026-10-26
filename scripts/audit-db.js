@@ -41,45 +41,59 @@ async function scrapeLiveNaiaMappings() {
 
     const finalMappings = await page.evaluate(() => {
       const results = {};
-      const allElements = document.querySelectorAll('li, p, td, span, div');
-      let currentTerm = 'Terminal 1';
+      
+      // Target sections or cards, and inspect each one individually for its specific terminal context
+      const sections = document.querySelectorAll('div, section, article, tab');
 
-      allElements.forEach(el => {
-        const text = el.innerText ? el.innerText.trim() : '';
-        const lower = text.toLowerCase();
+      sections.forEach(section => {
+        const sectionHTML = section.innerHTML || '';
+        const sectionText = section.innerText || '';
+        const lowerText = sectionText.toLowerCase();
 
-        // Track terminal section switches accurately
-        if (lower === 'terminal 1' || lower === 'naia terminal 1') currentTerm = 'Terminal 1';
-        else if (lower === 'terminal 2' || lower === 'naia terminal 2') currentTerm = 'Terminal 2';
-        else if (lower === 'terminal 3' || lower === 'naia terminal 3') currentTerm = 'Terminal 3';
-        else if (lower === 'terminal 4' || lower === 'naia terminal 4') currentTerm = 'Terminal 4';
+        // Determine which terminal this specific section belongs to based on local heading/text
+        let matchedTerminal = null;
+        if (lowerText.includes('terminal 1') && !lowerText.includes('terminal 2') && !lowerText.includes('terminal 3') && !lowerText.includes('terminal 4')) {
+          // Keep it granular or look for explicit markers
+        }
 
-        // Must be a leaf-ish node containing parentheses
-        if (text.includes('(') && text.includes(')') && el.children.length <= 2) {
-          const parts = text.split('(');
-          const cleanName = parts[0].trim().toLowerCase();
-          const codePart = parts[1] ? parts[1].replace(')', '').trim() : '';
+        // Better approach: Check if this container has a clear terminal heading inside it
+        const headings = section.querySelectorAll('h1, h2, h3, h4, h5, strong');
+        let blockTerminal = null;
 
-          // STRICT VALIDATION:
-          // 1. Airline name must be clean and reasonable length
-          // 2. Code inside parentheses must look like an airline code (1-4 alphanumeric chars), NOT JS code
-          const isValidCode = /^[A-Z0-9]{1,4}$/i.test(codePart);
-          
-          const isJunk = 
-            cleanName.length <= 2 || 
-            cleanName.includes('terminal') || 
-            cleanName.includes('flight') || 
-            cleanName.includes('©') || 
-            cleanName.includes('corp') || 
-            cleanName.includes('rights') ||
-            cleanName.includes('infra') ||
-            cleanName.includes('window') ||
-            cleanName.includes('gtag') ||
-            cleanName.includes('function');
+        headings.forEach(h => {
+          const hText = h.innerText ? h.innerText.trim().toLowerCase() : '';
+          if (hText.includes('terminal 1')) blockTerminal = 'Terminal 1';
+          else if (hText.includes('terminal 2')) blockTerminal = 'Terminal 2';
+          else if (hText.includes('terminal 3')) blockTerminal = 'Terminal 3';
+          else if (hText.includes('terminal 4')) blockTerminal = 'Terminal 4';
+        });
 
-          if (!isJunk && isValidCode) {
-            results[cleanName] = currentTerm;
-          }
+        if (blockTerminal) {
+          // Extract all airline items inside this specific block
+          const items = section.querySelectorAll('li, p, td, span');
+          items.forEach(item => {
+            const text = item.innerText ? item.innerText.trim() : '';
+            if (text.includes('(') && text.includes(')') && item.children.length <= 2) {
+              const parts = text.split('(');
+              const cleanName = parts[0].trim().toLowerCase();
+              const codePart = parts[1] ? parts[1].replace(')', '').trim() : '';
+              
+              if (/^[A-Z0-9]{1,4}$/i.test(codePart) && cleanName.length > 2) {
+                const isJunk = 
+                  cleanName.includes('terminal') || 
+                  cleanName.includes('flight') || 
+                  cleanName.includes('©') || 
+                  cleanName.includes('corp') || 
+                  cleanName.includes('rights') ||
+                  cleanName.includes('infra') ||
+                  cleanName.includes('window');
+
+                if (!isJunk) {
+                  results[cleanName] = blockTerminal;
+                }
+              }
+            }
+          });
         }
       });
 
@@ -87,7 +101,7 @@ async function scrapeLiveNaiaMappings() {
     });
 
     await browser.close();
-    console.log(`🌐 Successfully extracted ${Object.keys(finalMappings).length} validated airline mappings.`);
+    console.log(`🌐 Successfully extracted ${Object.keys(finalMappings).length} block-scoped airline mappings.`);
     return finalMappings;
   } catch (err) {
     console.error(`❌ Failed to scrape live NAIA site: ${err.message}`);
