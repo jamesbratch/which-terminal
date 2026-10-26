@@ -37,56 +37,62 @@ async function scrapeLiveNaiaMappings() {
     const page = await browser.newPage();
     await page.setUserAgent('Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36');
     await page.goto('https://newnaia.com.ph/flights/airline-information', { waitUntil: 'networkidle2', timeout: 40000 });
-    await new Promise(resolve => setTimeout(resolve, 6000));
+    await new Promise(resolve => setTimeout(resolve, 5000));
 
-    const map = await page.evaluate(() => {
-      const results = {};
-      
-      // Grab all structural elements to inspect text headings and items sequentially
-      const elements = document.querySelectorAll('h1, h2, h3, h4, h5, .card, .terminal-title, li, td, p, div');
-      let currentTerminal = "Terminal 1";
+    const finalMappings = {};
+    const terminalList = ['Terminal 1', 'Terminal 2', 'Terminal 3', 'Terminal 4'];
 
-      elements.forEach(el => {
-        const text = el.innerText ? el.innerText.trim() : '';
-        const lower = text.toLowerCase();
-
-        // Detect explicit terminal header blocks on the page layout
-        if (lower === 'terminal 1' || lower === 'naia terminal 1' || lower.includes('terminal 1')) {
-          currentTerminal = 'Terminal 1';
-        } else if (lower === 'terminal 2' || lower === 'naia terminal 2' || lower.includes('terminal 2')) {
-          currentTerminal = 'Terminal 2';
-        } else if (lower === 'terminal 3' || lower === 'naia terminal 3' || lower.includes('terminal 3')) {
-          currentTerminal = 'Terminal 3';
-        } else if (lower === 'terminal 4' || lower === 'naia terminal 4' || lower.includes('terminal 4')) {
-          currentTerminal = 'Terminal 4';
+    for (const term of terminalList) {
+      // Click the specific terminal tab/button on the page
+      const foundTab = await page.evaluate((targetTerm) => {
+        const elements = Array.from(document.querySelectorAll('button, a, div, span, li, h3, h4'));
+        const match = elements.find(el => el.innerText && el.innerText.trim().toLowerCase() === targetTerm.toLowerCase());
+        if (match) {
+          match.click();
+          return true;
         }
+        return false;
+      }, term);
 
-        // Match airline entries containing parentheses (e.g. "Cebu Pacific (5J)")
-        if (text.includes('(') && text.includes(')')) {
-          const airlineClean = text.split('(')[0].trim().toLowerCase();
-          
-          const isJunk = 
-            airlineClean.length <= 2 || 
-            airlineClean.includes('terminal') || 
-            airlineClean.includes('flight') || 
-            airlineClean.includes('©') || 
-            airlineClean.includes('corp') || 
-            airlineClean.includes('rights') ||
-            airlineClean.includes('infra');
+      if (foundTab) {
+        // Wait for the tab panel transition to complete
+        await new Promise(resolve => setTimeout(resolve, 2000));
+      }
 
-          if (!isJunk) {
-            // Only set if not already captured or update to the active scoped terminal
-            results[airlineClean] = currentTerminal;
+      // Extract all airline names currently displayed on the active view
+      const airlinesOnScreen = await page.evaluate(() => {
+        const results = [];
+        const items = document.querySelectorAll('li, p, td, span, div');
+        items.forEach(el => {
+          const text = el.innerText ? el.innerText.trim() : '';
+          if (text.includes('(') && text.includes(')')) {
+            const cleanName = text.split('(')[0].trim().toLowerCase();
+            const isJunk = 
+              cleanName.length <= 2 || 
+              cleanName.includes('terminal') || 
+              cleanName.includes('flight') || 
+              cleanName.includes('©') || 
+              cleanName.includes('corp') || 
+              cleanName.includes('rights') ||
+              cleanName.includes('infra');
+
+            if (!isJunk && !results.includes(cleanName)) {
+              results.push(cleanName);
+            }
           }
-        }
+        });
+        return results;
       });
 
-      return results;
-    });
+      // Bind these airlines to this specific terminal
+      airlinesOnScreen.forEach(airline => {
+        finalMappings[airline] = term;
+      });
+    }
 
     await browser.close();
-    console.log(`🌐 Successfully extracted ${Object.keys(map).length} verified live mappings with correct scoped terminals.`);
-    return map;
+    console.log(`🌐 Successfully extracted ${Object.keys(finalMappings).length} verified mappings via interactive tab selection.`);
+    return finalMappings;
   } catch (err) {
     console.error(`❌ Failed to scrape live NAIA site: ${err.message}`);
     await browser.close();
