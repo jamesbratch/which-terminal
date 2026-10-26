@@ -38,23 +38,42 @@ async function scrapeLiveNaiaMappings() {
   
   try {
     const page = await browser.newPage();
-    await page.goto('https://newnaia.com.ph/flights/airline-information', { waitUntil: 'networkidle2', timeout: 30000 });
+    await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36');
+    await page.goto('https://newnaia.com.ph/flights/airline-information', { waitUntil: 'networkidle2', timeout: 40000 });
 
-    // Extract table or list data from the rendered DOM
-    // Adjust selector based on the exact DOM structure of newnaia.com.ph
+    // Give the SPA a couple of seconds to render client-side tables
+    await new Promise(resolve => setTimeout(resolve, 3000));
+
     const liveMappings = await page.evaluate(() => {
       const map = {};
-      // Scrape rows from the official table/directory elements
-      const rows = document.querySelectorAll('table tr, .airline-row, .card'); 
-      rows.forEach(row => {
-        const text = row.innerText.toLowerCase();
-        // Extract airline name and terminal information dynamically from row text
-        // This will be matched against your local database entries
+      let currentTerminal = "Terminal 1";
+
+      // Walk through all elements to detect terminal headers and associated airlines
+      const elements = document.querySelectorAll('h1, h2, h3, h4, th, td, li, p, div');
+      
+      elements.forEach(el => {
+        const text = el.innerText ? el.innerText.trim() : '';
+        const lowerText = text.toLowerCase();
+
+        // Detect terminal headers
+        if (lowerText.includes('terminal 1')) currentTerminal = 'Terminal 1';
+        else if (lowerText.includes('terminal 2')) currentTerminal = 'Terminal 2';
+        else if (lowerText.includes('terminal 3')) currentTerminal = 'Terminal 3';
+        else if (lowerText.includes('terminal 4')) currentTerminal = 'Terminal 4';
+
+        // If this element looks like an airline entry (e.g. inside list items or table cells)
+        if (el.tagName === 'LI' || el.tagName === 'TD' || el.classList.contains('airline')) {
+          if (text.length > 2 && !lowerText.includes('terminal') && !lowerText.includes('flight')) {
+            map[lowerText] = currentTerminal;
+          }
+        }
       });
+
       return map;
     });
 
     await browser.close();
+    console.log(`🌐 Successfully extracted ${Object.keys(liveMappings).length} live mappings from newnaia.com.ph.`);
     return liveMappings;
   } catch (err) {
     console.error(`❌ Failed to scrape live NAIA site: ${err.message}`);
