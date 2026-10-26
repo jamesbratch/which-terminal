@@ -39,47 +39,52 @@ async function scrapeLiveNaiaMappings() {
     await page.goto('https://newnaia.com.ph/flights/airline-information', { waitUntil: 'networkidle2', timeout: 40000 });
     await new Promise(resolve => setTimeout(resolve, 5000));
 
-    // Scrape with precise terminal container scoping
+    // Robust line-by-line parser with header tracking and footer exclusion
     const liveMappings = await page.evaluate(() => {
       const map = {};
-      
-      // Find all terminal headers, tabs, or card containers on the page
-      // Usually official portals group airlines under explicit Terminal headings or accordion boxes
-      const textNodes = document.querySelectorAll('h1, h2, h3, h4, h5, .terminal-title, .card-header, strong, b');
-      
+      const fullText = document.body.innerText;
+      const lines = fullText.split('\n').map(l => l.trim()).filter(Boolean);
+
       let currentTerminal = "Terminal 1";
 
-      // Better traversal: iterate through blocks or look for explicit terminal scope containers
-      const allElements = document.querySelectorAll('div, section, article, li, td');
-      
-      allElements.forEach(el => {
-        const text = el.innerText ? el.innerText.trim() : '';
-        const lower = text.toLowerCase();
+      for (let i = 0; i < lines.length; i++) {
+        const line = lines[i];
+        const lower = line.toLowerCase();
 
-        // Strict terminal boundary detection
-        if (lower === 'terminal 1' || lower === 'naia terminal 1') currentTerminal = 'Terminal 1';
-        else if (lower === 'terminal 2' || lower === 'naia terminal 2') currentTerminal = 'Terminal 2';
-        else if (lower === 'terminal 3' || lower === 'naia terminal 3') currentTerminal = 'Terminal 3';
-        else if (lower === 'terminal 4' || lower === 'naia terminal 4') currentTerminal = 'Terminal 4';
+        // Track terminal header switches
+        if (lower.includes('terminal 1')) {
+          currentTerminal = 'Terminal 1';
+          continue;
+        } else if (lower.includes('terminal 2')) {
+          currentTerminal = 'Terminal 2';
+          continue;
+        } else if (lower.includes('terminal 3')) {
+          currentTerminal = 'Terminal 3';
+          continue;
+        } else if (lower.includes('terminal 4')) {
+          currentTerminal = 'Terminal 4';
+          continue;
+        }
 
-        // Extract airline elements while filtering out footers, copyrights, and UI labels
-        if ((el.tagName === 'LI' || el.tagName === 'TD' || el.tagName === 'P') && text.includes('(') && text.includes(')')) {
-          const cleanName = text.split('(')[0].trim().toLowerCase();
+        // Match airline entries containing parentheses (e.g., "Cebu Pacific (5J)")
+        if (line.includes('(') && line.includes(')')) {
+          const airlineClean = line.split('(')[0].trim().toLowerCase();
           
-          // Exclude noise, footers, and short strings
-          const isInvalid = 
-            cleanName.length <= 2 || 
-            cleanName.includes('terminal') || 
-            cleanName.includes('flight') || 
-            cleanName.includes('©') || 
-            cleanName.includes('rights') ||
-            cleanName.includes('corp');
+          // Filter out footers, copyrights, or UI artifacts
+          const isJunk = 
+            airlineClean.length <= 2 || 
+            airlineClean.includes('terminal') || 
+            airlineClean.includes('flight') || 
+            airlineClean.includes('©') || 
+            airlineClean.includes('corp') || 
+            airlineClean.includes('rights') ||
+            airlineClean.includes('infra');
 
-          if (!isInvalid) {
-            map[cleanName] = currentTerminal;
+          if (!isJunk) {
+            map[airlineClean] = currentTerminal;
           }
         }
-      });
+      }
 
       return map;
     });
