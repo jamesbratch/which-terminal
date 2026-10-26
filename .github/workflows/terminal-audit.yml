@@ -21,6 +21,9 @@ jobs:
         with:
           node-version: '22'
 
+      - name: Install Puppeteer Dependencies
+        run: npm install puppeteer    
+
       - name: Run Terminal Audit Script
         run: node scripts/audit-db.js
 
