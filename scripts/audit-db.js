@@ -102,6 +102,7 @@ async function runAudit() {
   const report = [];
   const missing = [];
   const review = [];
+  const stale = [];
 
   for (const target of targets) {
     const filePath = getFilePath(target.filename);
@@ -119,6 +120,16 @@ async function runAudit() {
       let expected = null;
       if (target.hub === 'mnl') {
         const hit = findLive(liveIndex, record);
+        if (!hit) {
+          // In our DB but not on the official list: may have stopped serving MNL.
+          const code = (record.code || '').toUpperCase();
+          stale.push({
+            airline: record.name,
+            code: record.code || '(none)',
+            dbTerminal: record.terminal,
+            note: !code || code === 'XX' ? 'no IATA code in DB, matched by name only' : 'code and name not on live list',
+          });
+        }
         if (hit) {
           matchedCodes.add(hit.code.toUpperCase()); // never report as "missing"
           const code = (record.code || '').toUpperCase();
@@ -185,7 +196,14 @@ async function runAudit() {
   console.log('\n==================================================');
   console.log(`Total Mismatched Discrepancies: ${report.length}`);
   console.log(`Total Missing Airlines Found: ${missing.length}`);
+  console.log(`In DB but not on live list (possibly no longer serve MNL): ${stale.length}`);
   console.log('==================================================\n');
+
+  if (stale.length) {
+    console.log('⚠️  Possibly no longer serving MNL (report only, never auto-removed).');
+    console.log('    Check each one: seasonal or renamed airlines can drop off the list temporarily.');
+    console.table(stale);
+  }
 
   if (review.length) {
     console.log('Needs manual review (not auto-patched):');
@@ -194,7 +212,7 @@ async function runAudit() {
   if (report.length) console.table(report);
   if (missing.length) console.table(missing);
 
-  if (!report.length && !missing.length) {
+  if (!report.length && !missing.length && !stale.length) {
     console.log('✅ Audit completed: All local databases match live official sources.');
     return;
   }
