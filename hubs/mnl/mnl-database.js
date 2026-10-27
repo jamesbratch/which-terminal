@@ -111,20 +111,7 @@ document.addEventListener('DOMContentLoaded', () => {
           if (items.length > 0) {
             items[items.length - 1].style.borderBottom = 'none';
             items[items.length - 1].style.marginBottom = '0';
-            items[items.length - 1  { name: "Air Canada", code: "AC", terminal: "Terminal 3", tag: "t3", hubName: "Manila (NAIA)", hubCode: "mnl", link: "hubs/mnl/mnl.html", notes: "Auto-appended from live official source." },
-  { name: "Air Changan", code: "9H", terminal: "Terminal 3", tag: "t3", hubName: "Manila (NAIA)", hubCode: "mnl", link: "hubs/mnl/mnl.html", notes: "Auto-appended from live official source." },
-  { name: "Air France", code: "AF", terminal: "Terminal 3", tag: "t3", hubName: "Manila (NAIA)", hubCode: "mnl", link: "hubs/mnl/mnl.html", notes: "Auto-appended from live official source." },
-  { name: "Air India", code: "AI", terminal: "Terminal 1", tag: "t1", hubName: "Manila (NAIA)", hubCode: "mnl", link: "hubs/mnl/mnl.html", notes: "Auto-appended from live official source." },
-  { name: "Air Macau", code: "NX", terminal: "Terminal 3", tag: "t3", hubName: "Manila (NAIA)", hubCode: "mnl", link: "hubs/mnl/mnl.html", notes: "Auto-appended from live official source." },
-  { name: "Bamboo Airlines", code: "QH", terminal: "Terminal 1", tag: "t1", hubName: "Manila (NAIA)", hubCode: "mnl", link: "hubs/mnl/mnl.html", notes: "Auto-appended from live official source." },
-  { name: "China Central Airlines", code: "I9", terminal: "Terminal 1", tag: "t1", hubName: "Manila (NAIA)", hubCode: "mnl", link: "hubs/mnl/mnl.html", notes: "Auto-appended from live official source." },
-  { name: "Greater Bay Airline", code: "HB", terminal: "Terminal 3", tag: "t3", hubName: "Manila (NAIA)", hubCode: "mnl", link: "hubs/mnl/mnl.html", notes: "Auto-appended from live official source." },
-  { name: "Hong Kong Air Cargo", code: "RH", terminal: "Terminal 1", tag: "t1", hubName: "Manila (NAIA)", hubCode: "mnl", link: "hubs/mnl/mnl.html", notes: "Auto-appended from live official source." },
-  { name: "Jetstar", code: "JQ", terminal: "Terminal 3", tag: "t3", hubName: "Manila (NAIA)", hubCode: "mnl", link: "hubs/mnl/mnl.html", notes: "Auto-appended from live official source." },
-  { name: "Jetstar Japan", code: "GK", terminal: "Terminal 3", tag: "t3", hubName: "Manila (NAIA)", hubCode: "mnl", link: "hubs/mnl/mnl.html", notes: "Auto-appended from live official source." },
-  { name: "Riyadh Air", code: "RX", terminal: "Terminal 3", tag: "t3", hubName: "Manila (NAIA)", hubCode: "mnl", link: "hubs/mnl/mnl.html", notes: "Auto-appended from live official source." },
-  { name: "VietJet Air", code: "VJ", terminal: "Terminal 1", tag: "t1", hubName: "Manila (NAIA)", hubCode: "mnl", link: "hubs/mnl/mnl.html", notes: "Auto-appended from live official source." },
-].style.paddingBottom = '0';
+            items[items.length - 1].style.paddingBottom = '0';
           }
 
           instantCard.classList.add('active');
@@ -193,4 +180,3 @@ function checkNetworkStatus() {
 window.addEventListener('online', checkNetworkStatus);
 window.addEventListener('offline', checkNetworkStatus);
 document.addEventListener('DOMContentLoaded', checkNetworkStatus);
-

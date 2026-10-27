@@ -17,16 +17,54 @@ function getFilePath(relativePath) {
   return null;
 }
 
+/**
+ * Locate the database array: the `[` of `const x = [` and its MATCHING `]`.
+ * Skips strings and comments, so code after the array (e.g. `items[items.length - 1]`)
+ * can never be mistaken for the end of the array.
+ */
+function findDbArray(content) {
+  const decl = /(?:const|let|var)\s+[\w$]+\s*=\s*\[/.exec(content);
+  const start = decl ? decl.index + decl[0].length - 1 : content.indexOf('[');
+  if (start === -1) return null;
+  let depth = 0;
+  for (let i = start; i < content.length; i++) {
+    const c = content[i];
+    const n = content[i + 1];
+    if (c === '/' && n === '/') { const e = content.indexOf('\n', i); i = e === -1 ? content.length : e; continue; }
+    if (c === '/' && n === '*') { const e = content.indexOf('*/', i + 2); i = e === -1 ? content.length : e + 1; continue; }
+    if (c === '"' || c === "'" || c === '`') {
+      for (i++; i < content.length && content[i] !== c; i++) if (content[i] === '\\') i++;
+      continue;
+    }
+    if (c === '[') depth++;
+    else if (c === ']' && --depth === 0) return { start, end: i };
+  }
+  return null;
+}
+
+/** Insert `entryText` (one object literal line ending in a comma) as the last array element. */
+function appendToArray(content, entryText) {
+  const b = findDbArray(content);
+  if (!b) return null;
+  let head = content.slice(0, b.end);
+  const tail = content.slice(b.end);
+  // The previous last element may have no trailing comma: add one, ignoring comments after it.
+  const lastBrace = head.lastIndexOf('}');
+  if (lastBrace !== -1) {
+    const between = head.slice(lastBrace + 1).replace(/\/\/[^\n]*|\/\*[\s\S]*?\*\//g, '');
+    if (!between.includes(',')) head = head.slice(0, lastBrace + 1) + ',' + head.slice(lastBrace + 1);
+  }
+  if (!head.endsWith('\n')) head += '\n';
+  return head + entryText + tail;
+}
+
 function loadLocalDatabase(filePath) {
   if (!filePath) return [];
   try {
-    let content = fs.readFileSync(filePath, 'utf8');
-    content = content.replace(/window\.\w+\s*=\s*\w+;/g, '');
-    content = content.replace(/document\.addEventListener[\s\S]*/g, '');
-    const startIdx = content.indexOf('[');
-    const endIdx = content.lastIndexOf(']');
-    if (startIdx === -1 || endIdx === -1) return [];
-    return eval(content.substring(startIdx, endIdx + 1));
+    const content = fs.readFileSync(filePath, 'utf8');
+    const b = findDbArray(content);
+    if (!b) return [];
+    return eval(content.slice(b.start, b.end + 1));
   } catch (err) {
     return [];
   }
@@ -273,15 +311,17 @@ async function runAudit() {
       let content = fs.readFileSync(filePath, 'utf8');
       const tag = tagOf(item.officialWebsiteTerminal) || 't1';
       const newEntry = `  { name: ${JSON.stringify(item.airline)}, code: ${JSON.stringify(item.code)}, terminal: ${JSON.stringify(item.officialWebsiteTerminal)}, tag: "${tag}", hubName: "Manila (NAIA)", hubCode: "mnl", link: "hubs/mnl/mnl.html", notes: "Auto-appended from live official source." },\n`;
-      const idx = content.lastIndexOf(']');
-      if (idx !== -1) {
-        content = content.slice(0, idx) + newEntry + content.slice(idx);
-        fs.writeFileSync(filePath, content, 'utf8');
+      const updated = appendToArray(content, newEntry);
+      if (updated) {
+        fs.writeFileSync(filePath, updated, 'utf8');
         console.log(`✨ Appended "${item.airline}" (${item.code}) to ${item.file}`);
+      } else {
+        console.error(`❌ Could not find the database array in ${item.file}; "${item.airline}" NOT appended.`);
       }
     }
   }
   console.log('\n💾 Done.');
 }
 
-runAudit();
+module.exports = { findDbArray, appendToArray, loadLocalDatabase };
+if (require.main === module) runAudit();
