@@ -8,6 +8,7 @@ on:
 permissions:
   contents: write
   pull-requests: write
+  issues: write
 
 jobs:
   sync:
@@ -29,6 +30,36 @@ jobs:
       - name: Run terminal audit
         shell: bash
         run: node scripts/audit-db.js --write | tee drift-report.txt
+
+      # New airlines and possibly-removed airlines are never changed automatically, and they
+      # don't touch any file, so no PR would be opened. Raise (or refresh) one issue instead.
+      - name: Flag new / possibly-removed airlines for manual review
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          MISSING=$(grep -oP 'Total Missing Airlines Found: \K\d+' drift-report.txt || echo 0)
+          STALE=$(grep -oP 'possibly no longer serve MNL\): \K\d+' drift-report.txt || echo 0)
+          echo "missing=$MISSING stale=$STALE"
+          if [ "$MISSING" -gt 0 ] || [ "$STALE" -gt 0 ]; then
+            TITLE="MNL airline list needs manual review"
+            {
+              echo "The scheduled audit found $MISSING airline(s) on newnaia.com.ph that are not in the database,"
+              echo "and $STALE database airline(s) that are not on the live list."
+              echo
+              echo "Nothing was added or removed automatically. Cross-check each one, then edit hubs/mnl/mnl-database.js by hand."
+              echo
+              echo '```'
+              cat drift-report.txt
+              echo '```'
+            } > issue-body.md
+            N=$(gh issue list --state open --search "$TITLE in:title" --json number --jq '.[0].number // empty')
+            if [ -n "$N" ]; then
+              gh issue edit "$N" --body-file issue-body.md
+            else
+              gh issue create --title "$TITLE" --body-file issue-body.md
+            fi
+          fi
 
       - name: Upload debug output on failure
         if: failure()
