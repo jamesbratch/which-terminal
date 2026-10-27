@@ -49,7 +49,20 @@ const naiaDatabase = [
   { name: "Malaysia Airlines", code: "MH", terminal: "Terminal 1", tag: "t1", hubName: "Manila (NAIA)", hubCode: "mnl", link: "hubs/mnl/mnl.html", notes: "Kuala Lumpur." },
   { name: "Oman Air", code: "WY", terminal: "Terminal 1", tag: "t1", hubName: "Manila (NAIA)", hubCode: "mnl", link: "hubs/mnl/mnl.html", notes: "Muscat long-haul." },
   { name: "Saudia", code: "SV", terminal: "Terminal 1", tag: "t1", hubName: "Manila (NAIA)", hubCode: "mnl", link: "hubs/mnl/mnl.html", notes: "Jeddah & Riyadh." },
-  { name: "XiamenAir", code: "MF", terminal: "Terminal 1", tag: "t1", hubName: "Manila (NAIA)", hubCode: "mnl", link: "hubs/mnl/mnl.html", notes: "Xiamen & Fuzhou." }
+  { name: "XiamenAir", code: "MF", terminal: "Terminal 1", tag: "t1", hubName: "Manila (NAIA)", hubCode: "mnl", link: "hubs/mnl/mnl.html", notes: "Xiamen & Fuzhou." },
+  { name: "Air Canada", code: "AC", terminal: "Terminal 3", tag: "t3", hubName: "Manila (NAIA)", hubCode: "mnl", link: "hubs/mnl/mnl.html", notes: "Auto-appended from live official source." },
+  { name: "Air Changan", code: "9H", terminal: "Terminal 3", tag: "t3", hubName: "Manila (NAIA)", hubCode: "mnl", link: "hubs/mnl/mnl.html", notes: "Auto-appended from live official source." },
+  { name: "Air France", code: "AF", terminal: "Terminal 3", tag: "t3", hubName: "Manila (NAIA)", hubCode: "mnl", link: "hubs/mnl/mnl.html", notes: "Auto-appended from live official source." },
+  { name: "Air India", code: "AI", terminal: "Terminal 1", tag: "t1", hubName: "Manila (NAIA)", hubCode: "mnl", link: "hubs/mnl/mnl.html", notes: "Auto-appended from live official source." },
+  { name: "Air Macau", code: "NX", terminal: "Terminal 3", tag: "t3", hubName: "Manila (NAIA)", hubCode: "mnl", link: "hubs/mnl/mnl.html", notes: "Auto-appended from live official source." },
+  { name: "Bamboo Airlines", code: "QH", terminal: "Terminal 1", tag: "t1", hubName: "Manila (NAIA)", hubCode: "mnl", link: "hubs/mnl/mnl.html", notes: "Auto-appended from live official source." },
+  { name: "China Central Airlines", code: "I9", terminal: "Terminal 1", tag: "t1", hubName: "Manila (NAIA)", hubCode: "mnl", link: "hubs/mnl/mnl.html", notes: "Auto-appended from live official source." },
+  { name: "Greater Bay Airline", code: "HB", terminal: "Terminal 3", tag: "t3", hubName: "Manila (NAIA)", hubCode: "mnl", link: "hubs/mnl/mnl.html", notes: "Auto-appended from live official source." },
+  { name: "Hong Kong Air Cargo", code: "RH", terminal: "Terminal 1", tag: "t1", hubName: "Manila (NAIA)", hubCode: "mnl", link: "hubs/mnl/mnl.html", notes: "Auto-appended from live official source." },
+  { name: "Jetstar", code: "JQ", terminal: "Terminal 3", tag: "t3", hubName: "Manila (NAIA)", hubCode: "mnl", link: "hubs/mnl/mnl.html", notes: "Auto-appended from live official source." },
+  { name: "Jetstar Japan", code: "GK", terminal: "Terminal 3", tag: "t3", hubName: "Manila (NAIA)", hubCode: "mnl", link: "hubs/mnl/mnl.html", notes: "Auto-appended from live official source." },
+  { name: "Riyadh Air", code: "RX", terminal: "Terminal 3", tag: "t3", hubName: "Manila (NAIA)", hubCode: "mnl", link: "hubs/mnl/mnl.html", notes: "Auto-appended from live official source." },
+  { name: "VietJet Air", code: "VJ", terminal: "Terminal 1", tag: "t1", hubName: "Manila (NAIA)", hubCode: "mnl", link: "hubs/mnl/mnl.html", notes: "Auto-appended from live official source." },
 ];
 
 // Always expose to window for both Manila UI and Global Homepage Search
