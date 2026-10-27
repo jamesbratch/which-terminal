@@ -4,6 +4,12 @@ name: Recon - official AOT flight boards
 # data fields it exposes (terminal / gate / check-in counter). It changes no files.
 on:
   workflow_dispatch:
+  # Runs once when this file is pushed to staging (no need to put it on the default branch first).
+  # Delete this block after the first successful run.
+  push:
+    branches: [staging]
+    paths:
+      - '.github/workflows/recon-official-board.yml'
 
 jobs:
   recon:
