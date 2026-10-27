@@ -8,38 +8,103 @@ on:
 permissions:
   contents: write
   pull-requests: write
+  issues: write
 
 jobs:
   audit:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
-      - name: Checkout Repository
+      - name: Checkout staging
         uses: actions/checkout@v4
+        with:
+          ref: staging
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '22'
 
-      - name: Install Puppeteer Dependencies
-        run: npm install puppeteer    
+      # --no-save: install puppeteer for this run only, without touching package.json / lock file
+      - name: Install Puppeteer
+        run: npm install --no-save puppeteer
 
+      # Fixes drifted terminals AND appends airlines that are on the official list but missing
+      # from the DB. It never deletes anything. The scrape exits 1 (and writes nothing) if the
+      # terminal split looks wrong.
       - name: Run Terminal Audit Script
-        run: node scripts/audit-db.js
+        shell: bash
+        run: node scripts/audit-db.js --write --add-missing | tee drift-report.txt
 
+      # Airlines in the DB that are no longer on the live list are never removed automatically.
+      # They don't change any file, so no PR would mention them: raise one issue instead.
+      - name: Flag possibly-removed airlines for manual review
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          STALE=$(grep -oP 'possibly no longer serve MNL\): \K\d+' drift-report.txt || echo 0)
+          echo "stale=$STALE"
+          if [ "$STALE" -gt 0 ]; then
+            TITLE="MNL: airlines possibly no longer serving Manila"
+            {
+              echo "$STALE database airline(s) are not on the official newnaia.com.ph list."
+              echo
+              echo "Nothing was removed automatically. Cross-check each one against the airline's own site,"
+              echo "then delete the entry by hand in hubs/mnl/mnl-database.js."
+              echo
+              echo '```'
+              cat drift-report.txt
+              echo '```'
+            } > issue-body.md
+            N=$(gh issue list --state open --search "$TITLE in:title" --json number --jq '.[0].number // empty')
+            if [ -n "$N" ]; then
+              gh issue edit "$N" --body-file issue-body.md
+            else
+              gh issue create --title "$TITLE" --body-file issue-body.md
+            fi
+          fi
+
+      - name: Build PR description
+        shell: bash
+        run: |
+          {
+            echo '### ✈️ Airport Terminal Alignment Sync'
+            echo
+            echo 'The automated weekly audit compared the database with the official airport portal and updated the database files below.'
+            echo 'New airlines are appended with basic fields only (add logos/links/notes by hand). Nothing is ever removed automatically.'
+            echo
+            echo 'Please review the modified files and click **Merge pull request** to publish the changes.'
+            echo
+            echo '<details><summary>Audit output</summary>'
+            echo
+            echo '```'
+            cat drift-report.txt
+            echo '```'
+            echo '</details>'
+          } > pr-body.md
+
+      # Only opens a PR if a database file actually changed.
       - name: Create Pull Request on Terminal Drift
         uses: peter-evans/create-pull-request@v6
         with:
-          commit-message: "chore(auto-sync): update terminal assignments from airport portals"
-          title: "🚨 Automated Terminal Update PR"
-          body: |
-            ### ✈️ Airport Terminal Alignment Sync
-            
-            The automated weekly audit detected changes on official airport portals (NAIA, AOT, DMK) and updated the database files accordingly.
-            
-            Please review the modified files below and click **Merge pull request** to publish the changes live!
+          base: staging
           branch: auto-terminal-update
           delete-branch: true
+          # Only these files can ever be committed, whatever else the job created.
+          add-paths: |
+            hubs/*/*-database.js
+          commit-message: "chore(auto-sync): update terminal assignments from airport portals"
+          title: "🚨 Automated Terminal Update PR"
+          body-path: pr-body.md
           labels: |
             automated-pr
             database
+
+      - name: Upload debug output on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: scrape-debug
+          path: scrape-debug/
+          if-no-files-found: ignore
