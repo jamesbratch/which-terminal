@@ -45,24 +45,29 @@ jobs:
         run: |
           STALE=$(grep -oP 'possibly no longer serve MNL\): \K\d+' drift-report.txt || echo 0)
           echo "stale=$STALE"
+          TITLE="MNL: airlines possibly no longer serving Manila"
+          N=$(gh issue list --state open --search "$TITLE in:title" --json number --jq '.[0].number // empty')
           if [ "$STALE" -gt 0 ]; then
-            TITLE="MNL: airlines possibly no longer serving Manila"
+            # Only the stale-airlines table (first box after the warning line), not the whole report.
+            awk '/Possibly no longer serving MNL \(report only/{f=1} f{print} f&&/^└/{exit}' drift-report.txt > stale-table.txt
             {
               echo "$STALE database airline(s) are not on the official newnaia.com.ph list."
               echo
               echo "Nothing was removed automatically. Cross-check each one against the airline's own site,"
               echo "then delete the entry by hand in hubs/mnl/mnl-database.js."
+              echo "This issue updates itself each run and closes once the list is empty."
               echo
               echo '```'
-              cat drift-report.txt
+              cat stale-table.txt
               echo '```'
             } > issue-body.md
-            N=$(gh issue list --state open --search "$TITLE in:title" --json number --jq '.[0].number // empty')
             if [ -n "$N" ]; then
               gh issue edit "$N" --body-file issue-body.md
             else
               gh issue create --title "$TITLE" --body-file issue-body.md
             fi
+          elif [ -n "$N" ]; then
+            gh issue close "$N" --comment "No stale airlines in the latest audit, closing."
           fi
 
       - name: Build PR description
