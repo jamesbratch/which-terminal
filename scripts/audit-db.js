@@ -44,13 +44,27 @@ function buildLiveIndex(airlines) {
   const byCode = new Map();
   const byName = new Map();
   const ambiguous = [];
+  const ambByCode = new Map();
+  const ambByName = new Map();
   for (const a of airlines) {
-    if (a.terminals.length !== 1) { ambiguous.push(a); continue; } // listed in >1 terminal: report only
+    if (a.terminals.length !== 1) {
+      // listed in >1 terminal: never auto-patched, but it still counts as "on the live list"
+      ambiguous.push(a);
+      ambByCode.set(a.code.toUpperCase(), a);
+      ambByName.set(norm(a.name), a);
+      continue;
+    }
     const entry = { name: a.name, code: a.code, terminal: a.terminals[0] };
     byCode.set(a.code.toUpperCase(), entry);
     byName.set(norm(a.name), entry);
   }
-  return { byCode, byName, ambiguous };
+  return { byCode, byName, ambiguous, ambByCode, ambByName };
+}
+
+function findAmbiguous(index, record) {
+  const code = (record.code || '').toUpperCase();
+  if (code && code !== 'XX' && index.ambByCode.has(code)) return index.ambByCode.get(code);
+  return index.ambByName.get(norm(record.name)) || null;
 }
 
 function findLive(index, record) {
@@ -120,7 +134,21 @@ async function runAudit() {
       let expected = null;
       if (target.hub === 'mnl') {
         const hit = findLive(liveIndex, record);
-        if (!hit) {
+        const multi = !hit ? findAmbiguous(liveIndex, record) : null;
+        if (multi) {
+          // On the live list under several terminals: fine as long as the DB terminal is one of them.
+          const dbT = (record.terminal || '').match(/^terminal\s*(\d)/i);
+          const ok = dbT && multi.terminals.includes(`Terminal ${dbT[1]}`);
+          if (!ok) {
+            review.push({
+              airline: record.name,
+              dbTerminal: record.terminal,
+              liveName: multi.name,
+              liveTerminal: multi.terminals.join(' / '),
+              reason: 'DB terminal not among live terminals',
+            });
+          }
+        } else if (!hit) {
           // In our DB but not on the official list: may have stopped serving MNL.
           const code = (record.code || '').toUpperCase();
           stale.push({
