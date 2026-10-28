@@ -4,6 +4,12 @@ on:
   schedule:
     - cron: '0 6 1 * *'   # 1st of each month
   workflow_dispatch:
+  # TEMPORARY: runs once when this file is pushed to staging, so it appears in the Actions list
+  # before it is on the default branch. Delete this block after the first successful run.
+  push:
+    branches: [staging]
+    paths:
+      - '.github/workflows/bkk-dmk-terminal-check.yml'
 
 permissions:
   contents: read
