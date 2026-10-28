@@ -1,0 +1,46 @@
+name: Monthly BKK/DMK terminal verification
+
+on:
+  schedule:
+    - cron: '0 6 1 * *'   # 1st of each month
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: staging
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      # No website is contacted. This checks the files and the last verified date.
+      - name: Run hub audit
+        id: audit
+        continue-on-error: true
+        run: node scripts/audit-bkk-dmk.js --strict
+
+      - name: Open or refresh the verification issue
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          TITLE="BKK/DMK: monthly terminal verification"
+          NUM=$(gh issue list --state open --search "\"$TITLE\" in:title" --json number --jq '.[0].number // empty')
+          if [ -n "$NUM" ]; then
+            gh issue edit "$NUM" --body-file bkk-dmk-audit-report.md
+            gh issue comment "$NUM" --body "Refreshed on $(date -u +%F). Close this issue once data/bkk-dmk-verification.json is updated."
+          else
+            gh issue create --title "$TITLE" --body-file bkk-dmk-audit-report.md
+          fi
+
+      - name: Fail the run if the data is inconsistent
+        if: steps.audit.outcome == 'failure'
+        run: exit 1
