@@ -107,29 +107,6 @@ function populateAirlineDropdowns() {
       outSelect.appendChild(new Option(optText, index));
     });
   }
-
-    /*
-  } else {
-    // 2. STANDARD & SINGLE-HUB PAGE HANDLING (e.g. BKK Page, DMK Page, MNL Page)
-    const airlines = (typeof getDatabaseForHub === 'function') 
-      ? getDatabaseForHub(selectedHub) 
-      : (selectedHub === 'BKK' ? window.bkkDatabase : 
-         selectedHub === 'DMK' ? window.dmkDatabase : 
-         window.mnlDatabase);
-
-    if (!airlines || airlines.length === 0) {
-      renderEmptyOption(inSelect, outSelect);
-      return;
-    }
-
-    // Single-hub clean dropdown (No [BKK]/[DMK] tags or optgroups)
-    airlines.forEach((airline, index) => {
-      const optText = `${airline.name} (${airline.code}) — ${airline.terminal}`;
-      inSelect.appendChild(new Option(optText, index));
-      outSelect.appendChild(new Option(optText, index));
-    });
-  }
-  */
 }
 
 function renderEmptyOption(inSelect, outSelect) {
@@ -196,51 +173,6 @@ function evaluateConnectionRisk() {
     transferName = "Cross-Terminal Transfer";
     activeRule = hubConfig.crossTerminal;
   } 
-
-/*
-function evaluateConnectionRisk() {
-  const hubSelect = document.getElementById('calcHub');
-  const selectedHubCode = hubSelect ? hubSelect.value : 'MNL';
-  
-  const inVal = document.getElementById('calcInAirline').value;
-  const outVal = document.getElementById('calcOutAirline').value;
-  const hours = parseInt(document.getElementById('calcHours').value) || 0;
-  const mins = parseInt(document.getElementById('calcMins').value) || 0;
-  
-  let isIntl = document.getElementById('calcIntl').checked;
-  const hasBags = document.getElementById('calcBags').checked;
-
-  const airlines = getDatabaseForHub(selectedHubCode);
-  
-  const incomingAirline = airlines[parseInt(inVal)];
-  const outgoingAirline = airlines[parseInt(outVal)];
-
-  if (!incomingAirline || !outgoingAirline) {
-    alert("Please select valid incoming and outgoing airlines.");
-    return;
-  }
-
-  const inAirport = incomingAirline.airport || selectedHubCode;
-  const outAirport = outgoingAirline.airport || selectedHubCode;
-
-  const transitConfig = window.TRANSIT_CONFIG || {};
-  const hubConfig = transitConfig[selectedHubCode] || transitConfig['MNL'];
-
-  let ruleKey = "SAME_TERMINAL";
-  let transferName = "Same Terminal Transfer";
-  let activeRule = hubConfig.sameTerminal;
-
-  if (inAirport !== outAirport) {
-    ruleKey = "CROSS_AIRPORT";
-    transferName = `Cross-Airport Transfer (${inAirport} ↔ ${outAirport})`;
-    activeRule = hubConfig.crossAirport;
-    isIntl = true;
-  } else if (incomingAirline.terminal !== outgoingAirline.terminal) {
-    ruleKey = "CROSS_TERMINAL";
-    transferName = "Cross-Terminal Transfer";
-    activeRule = hubConfig.crossTerminal;
-  }
-  */
 
   const transitBuffer = activeRule.transitMins;
   const immigrationMins = activeRule.immigrationMins;
